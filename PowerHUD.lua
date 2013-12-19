@@ -77,16 +77,18 @@ function PowerHUD:OnFrameUpdate()
 	-- Health Update
 	local nHealth = unitPlayer:GetHealth()
 	local nHealthMax = unitPlayer:GetMaxHealth()
-	self.wndHealth:FindChild("HealthBar"):SetFloor(0)
-	self.wndHealth:FindChild("HealthBar"):SetMax(nHealthMax)
-	self.wndHealth:FindChild("HealthBar"):SetProgress(nHealth)
+	local wndHealthBar = self.wndHealth:FindChild("HealthBar")
+	wndHealthBar:SetFloor(0)
+	wndHealthBar:SetMax(nHealthMax)
+	wndHealthBar:SetProgress(nHealth)
+	local nHealthHeight = wndHealthBar:GetHeight()
 
-	
+--	self.wndHealth:FindChild("HealthBar"):GetAnchorPoints()
 	 -- Shield Update
 	local nShield = unitPlayer:GetShieldCapacity()
 	local nShieldMax = unitPlayer:GetShieldCapacityMax()
 	
-	-- y = health bar height - (healthbarheight * (1 - health/healthmax))
+	local nBottom = nHealthHeight - (nHealthHeight * (1 - nHealth/nHealthMax))
 	-- shield top = healthtop + y - shield height
 	-- shield bottom = health top + y
 	
