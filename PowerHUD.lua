@@ -88,9 +88,12 @@ function PowerHUD:OnFrameUpdate()
 	local nShield = unitPlayer:GetShieldCapacity()
 	local nShieldMax = unitPlayer:GetShieldCapacityMax()
 	
-	local nBottom = nHealthHeight - (nHealthHeight * (1 - nHealth/nHealthMax))
+	local nDelta = nHealthHeight - (nHealthHeight * (1 - nHealth/nHealthMax))
 	-- shield top = healthtop + y - shield height
 	-- shield bottom = health top + y
+	local wndShieldBar = self.wndHealth:FindChild("ShieldBar")
+	local nLeft, nTop, nRight, nBottom = wndShieldBar:GetAnchorPoints()
+	wndShieldBar:SetAnchorOffsets(nLeft, nTop + nDelta, nRight, nBottom + nDelta)
 	
 	self.wndHealth:FindChild("ShieldBar"):SetFloor(0)
 	self.wndHealth:FindChild("ShieldBar"):SetMax(nShieldMax)
