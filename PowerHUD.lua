@@ -8,6 +8,9 @@ require "Window"
 -- PowerHUD Module Definition
 -----------------------------------------------------------------------------------------------
 local PowerHUD = {} 
+
+local GeminiPackages = _G["GeminiPackages"]
+local glog 
  
 -----------------------------------------------------------------------------------------------
 -- Constants
@@ -36,10 +39,15 @@ end
 -- PowerHUD OnLoad
 -----------------------------------------------------------------------------------------------
 function PowerHUD:OnLoad()
+
+	GeminiPackages:Require("GeminiLogging-1.0", function(GeminiLogging)
+		glog = GeminiLogging:GetLogger()
+	end)
     -- Register handlers for events, slash commands and timer, etc.
     -- e.g. Apollo.RegisterEventHandler("KeyDown", "OnKeyDown", self)
     Apollo.RegisterSlashCommand("powerhud", "OnPowerHUDOn", self)
 	Apollo.RegisterEventHandler("VarChange_FrameCount", "OnFrameUpdate", self)
+	Apollo.RegisterEventHandler("UnitEnteredCombat", "OnEnterCombat", self)
     
     -- load our forms
     self.wndMain = Apollo.LoadForm("PowerHUD.xml", "PowerHUDForm", nil, self)
@@ -60,6 +68,22 @@ end
 function PowerHUD:OnPowerHUDOn()
 	self.wndMain:Show(true) -- show the window
 end
+
+function PowerHUD:OnEnterCombat(unitPlayer, bInCombat)
+	if unitPlayer ~= GameLib.GetPlayerUnit() or not self.wndMain or not self.wndMain:IsValid() then
+		return
+	end
+	
+	if bInCombat then
+		self.wndHealth:Show(true)
+		self.wndMain:Show(true)
+	else
+		self.wndHealth:Show(false)
+		self.wndMain:Show(false)
+	end
+end
+
+
 
 function PowerHUD:OnFrameUpdate()
 	if not self.wndMain:IsValid() then
@@ -83,22 +107,51 @@ function PowerHUD:OnFrameUpdate()
 	wndHealthBar:SetProgress(nHealth)
 	local nHealthHeight = wndHealthBar:GetHeight()
 
---	self.wndHealth:FindChild("HealthBar"):GetAnchorPoints()
+	local nHealthLeft, nHealthTop, nHealthRight, nHealthBottom = self.wndHealth:FindChild("HealthBar"):GetAnchorOffsets()
 	 -- Shield Update
 	local nShield = unitPlayer:GetShieldCapacity()
 	local nShieldMax = unitPlayer:GetShieldCapacityMax()
 	
-	local nDelta = nHealthHeight - (nHealthHeight * (1 - nHealth/nHealthMax))
-	-- shield top = healthtop + y - shield height
-	-- shield bottom = health top + y
+	local nPositiveOffset = (nHealthHeight * (1 - nHealth/nHealthMax))
+
 	local wndShieldBar = self.wndHealth:FindChild("ShieldBar")
-	local nLeft, nTop, nRight, nBottom = wndShieldBar:GetAnchorPoints()
-	wndShieldBar:SetAnchorOffsets(nLeft, nTop + nDelta, nRight, nBottom + nDelta)
+	local nShieldHeight = wndShieldBar:GetHeight()
+	local nLeft, nTop, nRight, nBottom = wndShieldBar:GetAnchorOffsets()
+	wndShieldBar:SetAnchorOffsets(nLeft, nHealthTop - nShieldHeight - 1 + nPositiveOffset, nRight, nHealthTop - 1 + nPositiveOffset)
 	
 	self.wndHealth:FindChild("ShieldBar"):SetFloor(0)
 	self.wndHealth:FindChild("ShieldBar"):SetMax(nShieldMax)
 	self.wndHealth:FindChild("ShieldBar"):SetProgress(nShield)
 
+end
+
+function PowerHUD:OnSave(eLevel)
+	if eLevel ~= GameLib.CodeEnumAddonSaveLevel.Character then
+		return
+	end
+	
+	local temp = {}
+	local resource = {}
+	resource["l"], resource["t"], resource["r"], resource["b"] = self.wndMain:GetAnchorOffsets()
+	temp["wndMainOffsets"] = resource
+	
+	local health = {}
+	health["l"], health["t"], health["r"], health["b"] = self.wndHealth:GetAnchorOffsets()
+	temp["wndHealthOffsets"] = health
+	
+	return temp
+end
+
+function PowerHUD:OnRestore(eLevel, tData)
+	if tData ~= nil and tData["wndMainOffsets"] ~= nil then
+		offsets = tData["wndMainOffsets"]
+		self.wndMain:SetAnchorOffsets(offsets["l"], offsets["t"], offsets["r"], offsets["b"])
+	end
+	
+	if tData ~= nil and tData["wndHealthOffsets"] ~= nil then
+		offsets = tData["wndHealthOffsets"]
+		self.wndMain:SetAnchorOffsets(offsets["l"], offsets["t"], offsets["r"], offsets["b"])
+	end
 end
 
 
