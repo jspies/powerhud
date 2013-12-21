@@ -2,4 +2,4 @@
 <Addon Author="Sigr" APIVersion="3" Name="PowerHUD" Description="Brings Data you need anywhere you want it">
     <Script Name="PowerHUD.lua"/>
     <Form Name="PowerHUD.xml"/>
-</Addon>
+<Form Name="HealthHUD.xml"/></Addon>

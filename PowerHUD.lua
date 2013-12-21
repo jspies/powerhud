@@ -31,7 +31,7 @@ function PowerHUD:new(o)
 end
 
 function PowerHUD:Init()
-    Apollo.RegisterAddon(self)
+    Apollo.RegisterAddon(self, true)
 end
  
 
@@ -49,12 +49,18 @@ function PowerHUD:OnLoad()
 	Apollo.RegisterEventHandler("VarChange_FrameCount", "OnFrameUpdate", self)
 	Apollo.RegisterEventHandler("UnitEnteredCombat", "OnEnterCombat", self)
     
+	
+	
     -- load our forms
     self.wndMain = Apollo.LoadForm("PowerHUD.xml", "PowerHUDForm", nil, self)
-	self.wndHealth = Apollo.LoadForm("PowerHUD.xml", "HealthForm", nil, self)
+	self.wndHealth = Apollo.LoadForm("HealthHUD.xml", "HealthForm", nil, self)
+	
+
 	
     self.wndMain:Show(true)
     self.wndHealth:Show(true)
+
+	self:Lock()
 
 end
 
@@ -63,11 +69,40 @@ end
 -- PowerHUD Functions
 -----------------------------------------------------------------------------------------------
 -- Define general functions here
+function PowerHUD:Lock()
+	glog:info("locking")
+	self.bIsLocked = true
+	self.wndMain:SetStyle("Moveable", false)
+	self.wndHealth:SetStyle("Moveable", false)
+	self.wndMain:SetStyle("Border", false)
+	self.wndHealth:SetStyle("Border", false)
+end
+
+function PowerHUD:Unlock()
+	glog:info("unlocking")
+	self.wndMain:Show(true) -- show the window
+	self.wndHealth:Show(true) -- show the window
+	t, l, b, r = self.wndMain:GetAnchorOffsets()
+	glog:info(t)
+	glog:info(l)
+	glog:info(b)
+	glog:info(r)
+	self.bIsLocked = false
+	self.wndMain:SetStyle("Moveable", true)
+	self.wndMain:SetStyle("Border", true)
+	self.wndHealth:SetStyle("Border", true)
+	self.wndHealth:SetStyle("Moveable", true)
+end
 
 -- on SlashCommand "/powerhud"
 function PowerHUD:OnPowerHUDOn()
-	self.wndMain:Show(true) -- show the window
+	if self.bIsLocked == true then
+		self:Unlock()
+	else
+		self:Lock()
+	end
 end
+
 
 function PowerHUD:OnEnterCombat(unitPlayer, bInCombat)
 	if unitPlayer ~= GameLib.GetPlayerUnit() or not self.wndMain or not self.wndMain:IsValid() then
@@ -123,6 +158,10 @@ function PowerHUD:OnFrameUpdate()
 	self.wndHealth:FindChild("ShieldBar"):SetMax(nShieldMax)
 	self.wndHealth:FindChild("ShieldBar"):SetProgress(nShield)
 
+end
+
+function PowerHUD:OnConfigure()
+	glog:info("on configure")
 end
 
 function PowerHUD:OnSave(eLevel)
