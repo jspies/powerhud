@@ -9,6 +9,7 @@ function GeminiPosition:new()
 
     -- initialize variables here
 	self.Positionables = {}
+	self.bIsLocked = true
     return o
 end
 
@@ -37,6 +38,33 @@ function GeminiPosition:RestorePositions(positions)
 	
 	for key, position in pairs(positions) do
 		self.Positionables[key]:SetAnchorOffsets(position["l"], position["t"], position["r"], position["b"])
+	end
+end
+
+-- Toggles the Lock State and the UI
+function GeminiPosition:ToggleLock()
+	if self.bIsLocked == true then
+		self:Unlock()
+	else
+		self:Lock()
+	end
+end
+
+-- Locks all Positionable Windows and removes "editing" UI elements
+function GeminiPosition:Lock()
+	self.bIsLocked = not self.bIsLocked
+	self:ForEachPositionable(function(positionable)
+		positionable:SetStyle("Moveable", false)
+	end)
+end
+
+function GeminiPosition:Unlock()
+end
+
+-- iterates each positionable and runs the specified function
+function GeminiPosition:ForEachPositionable(callMethod)
+	for key, positionable in pairs(self.Positionables) do
+		callMethod(positionable)
 	end
 end
 

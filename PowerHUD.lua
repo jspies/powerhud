@@ -88,10 +88,9 @@ end
 function PowerHUD:Lock()
 	glog:info("locking")
 	self.bIsLocked = true
-	self.wndMain:SetStyle("Moveable", false)
-	self.wndHealth:SetStyle("Moveable", false)
 	self.wndMain:SetStyle("Border", false)
 	self.wndHealth:SetStyle("Border", false)
+	GeminiPosition:Lock()
 end
 
 function PowerHUD:Unlock()
