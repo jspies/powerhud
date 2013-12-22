@@ -3,6 +3,7 @@
 -----------------------------------------------------------------------------------------------
  
 require "Window"
+require "GeminiPosition"
  
 -----------------------------------------------------------------------------------------------
 -- PowerHUD Module Definition
@@ -10,6 +11,7 @@ require "Window"
 local PowerHUD = {} 
 
 local GeminiPackages = _G["GeminiPackages"]
+local GeminiPosition = _G["GeminiPosition"]
 local glog 
  
 -----------------------------------------------------------------------------------------------
@@ -55,7 +57,6 @@ function PowerHUD:OnLoad()
     self.wndMain = Apollo.LoadForm("PowerHUD.xml", "PowerHUDForm", nil, self)
 	self.wndHealth = Apollo.LoadForm("HealthHUD.xml", "HealthForm", nil, self)
 	
-
 	
     self.wndMain:Show(true)
     self.wndHealth:Show(true)
