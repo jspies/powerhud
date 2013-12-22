@@ -57,6 +57,9 @@ function PowerHUD:OnLoad()
     self.wndMain = Apollo.LoadForm("PowerHUD.xml", "PowerHUDForm", nil, self)
 	self.wndHealth = Apollo.LoadForm("HealthHUD.xml", "HealthForm", nil, self)
 	
+	GeminiPackages:Require("GeminiPosition", function(GeminiPosition)
+		GeminiPosition:MakePositionable(self.wndMain)
+	end)
 	
     self.wndMain:Show(true)
     self.wndHealth:Show(true)
