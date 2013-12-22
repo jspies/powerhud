@@ -51,14 +51,20 @@ function GeminiPosition:ToggleLock()
 end
 
 -- Locks all Positionable Windows and removes "editing" UI elements
-function GeminiPosition:Lock()
+function GeminiPosition:Lock(callback)
 	self.bIsLocked = not self.bIsLocked
 	self:ForEachPositionable(function(positionable)
 		positionable:SetStyle("Moveable", false)
+		callback(positionable)
 	end)
 end
 
-function GeminiPosition:Unlock()
+function GeminiPosition:Unlock(callback)
+	self.bIsLocked = not self.bIsLocked
+	self:ForEachPositionable(function(positionable)
+		positionable:SetStyle("Moveable", true)
+		callback(positionable)
+	end)
 end
 
 -- iterates each positionable and runs the specified function
@@ -68,4 +74,4 @@ function GeminiPosition:ForEachPositionable(callMethod)
 	end
 end
 
-GeminiPackages:NewPackage(GeminiPosition, "GeminiPosition", 3)
+GeminiPackages:NewPackage(GeminiPosition, "GeminiPosition", 1)

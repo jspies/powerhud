@@ -86,27 +86,21 @@ end
 -----------------------------------------------------------------------------------------------
 -- Define general functions here
 function PowerHUD:Lock()
-	glog:info("locking")
 	self.bIsLocked = true
-	self.wndMain:SetStyle("Border", false)
-	self.wndHealth:SetStyle("Border", false)
-	GeminiPosition:Lock()
+	GeminiPosition:Lock(function(window)
+		window:SetStyle("Picture", true)
+	end)
 end
 
 function PowerHUD:Unlock()
-	glog:info("unlocking")
+	GeminiPosition:Unlock(function(window)
+		window:SetStyle("Picture", false)
+	end)
 	self.wndMain:Show(true) -- show the window
 	self.wndHealth:Show(true) -- show the window
-	t, l, b, r = self.wndMain:GetAnchorOffsets()
-	glog:info(t)
-	glog:info(l)
-	glog:info(b)
-	glog:info(r)
+
 	self.bIsLocked = false
-	self.wndMain:SetStyle("Moveable", true)
-	self.wndMain:SetStyle("Border", true)
-	self.wndHealth:SetStyle("Border", true)
-	self.wndHealth:SetStyle("Moveable", true)
+
 end
 
 -- on SlashCommand "/powerhud"
