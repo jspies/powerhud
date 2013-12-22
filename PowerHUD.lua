@@ -3,7 +3,6 @@
 -----------------------------------------------------------------------------------------------
  
 require "Window"
-require "GeminiPosition"
  
 -----------------------------------------------------------------------------------------------
 -- PowerHUD Module Definition
@@ -11,7 +10,7 @@ require "GeminiPosition"
 local PowerHUD = {} 
 
 local GeminiPackages = _G["GeminiPackages"]
-local GeminiPosition = _G["GeminiPosition"]
+local GeminiPosition
 local glog 
  
 -----------------------------------------------------------------------------------------------
@@ -34,6 +33,7 @@ end
 
 function PowerHUD:Init()
     Apollo.RegisterAddon(self, true)
+	
 end
  
 
@@ -50,16 +50,19 @@ function PowerHUD:OnLoad()
     Apollo.RegisterSlashCommand("powerhud", "OnPowerHUDOn", self)
 	Apollo.RegisterEventHandler("VarChange_FrameCount", "OnFrameUpdate", self)
 	Apollo.RegisterEventHandler("UnitEnteredCombat", "OnEnterCombat", self)
-    
-	
+
 	
     -- load our forms
     self.wndMain = Apollo.LoadForm("PowerHUD.xml", "PowerHUDForm", nil, self)
 	self.wndHealth = Apollo.LoadForm("HealthHUD.xml", "HealthForm", nil, self)
 	
-	GeminiPackages:Require("GeminiPosition", function(GeminiPosition)
-		GeminiPosition:MakePositionable(self.wndMain)
+	GeminiPackages:Require("GeminiPosition", function(GP)
+
+		GeminiPosition = GP:new()
+		GeminiPosition:MakePositionable("resource", self.wndMain)
+		GeminiPosition:MakePositionable("health", self.wndHealth)
 	end)
+
 	
     self.wndMain:Show(true)
     self.wndHealth:Show(true)
@@ -99,12 +102,17 @@ function PowerHUD:Unlock()
 end
 
 -- on SlashCommand "/powerhud"
-function PowerHUD:OnPowerHUDOn()
-	if self.bIsLocked == true then
-		self:Unlock()
-	else
-		self:Lock()
+function PowerHUD:OnPowerHUDOn(cmd, args)
+	if string.len(args) == 0 then
+		--self:ShowOptionsWindow()
+	elseif string.lower(args) == "lock" then
+		if self.bIsLocked == true then
+			self:Unlock()
+		else
+			self:Lock()
+		end
 	end
+	
 end
 
 
@@ -174,27 +182,18 @@ function PowerHUD:OnSave(eLevel)
 	end
 	
 	local temp = {}
-	local resource = {}
-	resource["l"], resource["t"], resource["r"], resource["b"] = self.wndMain:GetAnchorOffsets()
-	temp["wndMainOffsets"] = resource
 	
-	local health = {}
-	health["l"], health["t"], health["r"], health["b"] = self.wndHealth:GetAnchorOffsets()
-	temp["wndHealthOffsets"] = health
+	
+	temp["positions"] = GeminiPosition:PositionsForSave()
+	
 	
 	return temp
 end
 
 function PowerHUD:OnRestore(eLevel, tData)
-	if tData ~= nil and tData["wndMainOffsets"] ~= nil then
-		offsets = tData["wndMainOffsets"]
-		self.wndMain:SetAnchorOffsets(offsets["l"], offsets["t"], offsets["r"], offsets["b"])
-	end
 	
-	if tData ~= nil and tData["wndHealthOffsets"] ~= nil then
-		offsets = tData["wndHealthOffsets"]
-		self.wndMain:SetAnchorOffsets(offsets["l"], offsets["t"], offsets["r"], offsets["b"])
-	end
+	GeminiPosition:RestorePositions(tData["positions"])
+	
 end
 
 
