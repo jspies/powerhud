@@ -41,12 +41,18 @@ end
 -- PowerHUD OnLoad
 -----------------------------------------------------------------------------------------------
 function PowerHUD:OnLoad()
+	-- store config variables for customization and options page
+	self.config = {
+		bHealthBarEnabled = true,
+		bResourceBarEnabled = true,
+		bHideOutOfCombat = true
+	}
 
 	GeminiPackages:Require("GeminiLogging-1.0", function(GeminiLogging)
 		glog = GeminiLogging:GetLogger()
 	end)
+	
     -- Register handlers for events, slash commands and timer, etc.
-    -- e.g. Apollo.RegisterEventHandler("KeyDown", "OnKeyDown", self)
     Apollo.RegisterSlashCommand("powerhud", "OnPowerHUDOn", self)
 	Apollo.RegisterEventHandler("VarChange_FrameCount", "OnFrameUpdate", self)
 	Apollo.RegisterEventHandler("UnitEnteredCombat", "OnEnterCombat", self)
@@ -55,9 +61,12 @@ function PowerHUD:OnLoad()
     -- load our forms
     self.wndMain = Apollo.LoadForm("PowerHUD.xml", "PowerHUDForm", nil, self)
 	self.wndHealth = Apollo.LoadForm("HealthHUD.xml", "HealthForm", nil, self)
+	self.wndOptions = Apollo.LoadForm("PowerHUD.xml", "PowerHUDOptionsForm", nil, self)
+	self.wndOptions:Show(false)
 	
+	-- GeminiPosition handles boilerplate for windows you would like to save postion and restore
+	-- here we are saving the customizable HUD elements
 	GeminiPackages:Require("GeminiPosition", function(GP)
-
 		GeminiPosition = GP:new()
 		GeminiPosition:MakePositionable("resource", self.wndMain)
 		GeminiPosition:MakePositionable("health", self.wndHealth)
@@ -173,7 +182,7 @@ function PowerHUD:OnFrameUpdate()
 end
 
 function PowerHUD:OnConfigure()
-	glog:info("on configure")
+	self.wndOptions:Show(true)
 end
 
 function PowerHUD:OnSave(eLevel)
@@ -200,16 +209,16 @@ end
 -----------------------------------------------------------------------------------------------
 -- PowerHUDForm Functions
 -----------------------------------------------------------------------------------------------
--- when the OK button is clicked
-function PowerHUD:OnOK()
-	self.wndMain:Show(false) -- hide the window
-end
 
--- when the Cancel button is clicked
-function PowerHUD:OnCancel()
-	self.wndMain:Show(false) -- hide the window
-end
 
+
+---------------------------------------------------------------------------------------------------
+-- PowerHUDOptionsForm Functions
+---------------------------------------------------------------------------------------------------
+
+function PowerHUD:OnOptionsClose( wndHandler, wndControl, eMouseButton )
+	self.wndOptions:Show(false)
+end
 
 -----------------------------------------------------------------------------------------------
 -- PowerHUD Instance
