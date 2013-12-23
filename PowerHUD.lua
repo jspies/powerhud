@@ -27,13 +27,13 @@ function PowerHUD:new(o)
     self.__index = self 
 
     -- initialize variables here
+	self.config = self:Defaults()
 
     return o
 end
 
 function PowerHUD:Init()
     Apollo.RegisterAddon(self, true)
-	
 end
  
 
@@ -42,11 +42,7 @@ end
 -----------------------------------------------------------------------------------------------
 function PowerHUD:OnLoad()
 	-- store config variables for customization and options page
-	self.config = {
-		bHealthBarEnabled = true,
-		bResourceBarEnabled = true,
-		bHideOutOfCombat = true
-	}
+	self.config = self:Defaults()
 
 	GeminiPackages:Require("GeminiLogging-1.0", function(GeminiLogging)
 		glog = GeminiLogging:GetLogger()
@@ -76,8 +72,6 @@ function PowerHUD:OnLoad()
     self.wndMain:Show(true)
     self.wndHealth:Show(true)
 
-	self:Lock()
-
 end
 
 
@@ -85,36 +79,16 @@ end
 -- PowerHUD Functions
 -----------------------------------------------------------------------------------------------
 -- Define general functions here
-function PowerHUD:Lock()
-	self.bIsLocked = true
-	GeminiPosition:Lock(function(window)
-		window:SetStyle("Picture", true)
-	end)
-end
-
-function PowerHUD:Unlock()
-	GeminiPosition:Unlock(function(window)
-		window:SetStyle("Picture", false)
-	end)
-	self.wndMain:Show(true) -- show the window
-	self.wndHealth:Show(true) -- show the window
-
-	self.bIsLocked = false
-
-end
 
 -- on SlashCommand "/powerhud"
 function PowerHUD:OnPowerHUDOn(cmd, args)
 	if string.len(args) == 0 then
-		--self:ShowOptionsWindow()
+		self:OnOptionsShow()
 	elseif string.lower(args) == "lock" then
-		if self.bIsLocked == true then
-			self:Unlock()
-		else
-			self:Lock()
-		end
-	end
-	
+		GeminiPosition:ToggleLock(function(window, bIsLocked)
+			window:SetStyle("Picture", not bIsLocked)
+		end)
+	end	
 end
 
 
@@ -174,7 +148,34 @@ function PowerHUD:OnFrameUpdate()
 
 end
 
+-----------------------------------------------------------------
+-- Options Methods
+-----------------------------------------------------------------
+
 function PowerHUD:OnConfigure()
+	self:OnOptionsShow()
+end
+
+-- Default settings used for config
+function PowerHUD:Defaults()
+	return {
+		tHealthBar = {
+			bEnabled = true,
+			bHideOoc = true
+		},
+		tResourceBar = {
+			bEnabled = true,
+			bHideOoc = true
+		}
+	}
+end
+
+function PowerHUD:OnOptionsShow()
+	local bHealthOn = self.config.tHealthBar.bEnabled
+	self.wndOptions:FindChild("HealthEnabledButton"):SetCheck(bHealthOn)
+	self.wndOptions:FindChild("HealthSettings"):Enable(bHealthOn)
+	self.wndOptions:FindChild("HealthOOCombatHide"):SetCheck(self.config.tHealthBar.bHideOoc)
+	
 	self.wndOptions:Show(true)
 end
 
@@ -182,36 +183,34 @@ function PowerHUD:OnSave(eLevel)
 	if eLevel ~= GameLib.CodeEnumAddonSaveLevel.Character then
 		return
 	end
-	
 	local temp = {}
-	
-	
 	temp["positions"] = GeminiPosition:PositionsForSave()
-	
+	temp["config"] = self.config
 	
 	return temp
 end
 
 function PowerHUD:OnRestore(eLevel, tData)
-	
 	GeminiPosition:RestorePositions(tData["positions"])
-	
+	self.config = tData["config"]
+	if self.config == nil then -- possibly first time or data got wiped
+		self.config = self:Defaults()
+	end
 end
-
-
------------------------------------------------------------------------------------------------
--- PowerHUDForm Functions
------------------------------------------------------------------------------------------------
-
-
-
----------------------------------------------------------------------------------------------------
--- PowerHUDOptionsForm Functions
----------------------------------------------------------------------------------------------------
 
 function PowerHUD:OnOptionsClose( wndHandler, wndControl, eMouseButton )
 	self.wndOptions:Show(false)
 end
+
+
+-----------------------------------------------------------------------------------------------
+-- HealthSettings Functions
+-----------------------------------------------------------------------------------------------
+
+function PowerHUD:OnHealthOOCombatHideCheck( wndHandler, wndControl, eMouseButton )
+	self.config.tHealthBar.bHideOoc = wndControl:IsChecked()
+end
+
 
 -----------------------------------------------------------------------------------------------
 -- PowerHUD Instance

@@ -42,11 +42,11 @@ function GeminiPosition:RestorePositions(positions)
 end
 
 -- Toggles the Lock State and the UI
-function GeminiPosition:ToggleLock()
+function GeminiPosition:ToggleLock(callback)
 	if self.bIsLocked == true then
-		self:Unlock()
+		self:Unlock(callback)
 	else
-		self:Lock()
+		self:Lock(callback)
 	end
 end
 
@@ -55,7 +55,7 @@ function GeminiPosition:Lock(callback)
 	self.bIsLocked = not self.bIsLocked
 	self:ForEachPositionable(function(positionable)
 		positionable:SetStyle("Moveable", false)
-		callback(positionable)
+		callback(positionable, self.bIsLocked)
 	end)
 end
 
