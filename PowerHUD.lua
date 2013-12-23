@@ -52,6 +52,7 @@ function PowerHUD:OnLoad()
     Apollo.RegisterSlashCommand("powerhud", "OnPowerHUDOn", self)
 	Apollo.RegisterEventHandler("VarChange_FrameCount", "OnFrameUpdate", self)
 	Apollo.RegisterEventHandler("UnitEnteredCombat", "OnEnterCombat", self)
+	Apollo.RegisterEventHandler("OutOfCombatTimer", "OnOutOfCombatTimer", self)
 
 	
     -- load our forms
@@ -91,7 +92,6 @@ function PowerHUD:OnPowerHUDOn(cmd, args)
 	end	
 end
 
-
 function PowerHUD:OnEnterCombat(unitPlayer, bInCombat)
 	if unitPlayer ~= GameLib.GetPlayerUnit() or not self.wndMain or not self.wndMain:IsValid() then
 		return
@@ -101,12 +101,25 @@ function PowerHUD:OnEnterCombat(unitPlayer, bInCombat)
 		self.wndHealth:Show(true)
 		self.wndMain:Show(true)
 	else
-		self.wndHealth:Show(false)
+		if self.config.tHealthBar.bHideOoc then
+			self.wndHealth:Show(false)
+		end
 		self.wndMain:Show(false)
+		Apollo:CreateTimer("OutOfCombatTimer", 1, false)
+		-- for name, hud in self.HUDs do
+			-- if hud.config.bHideOoc then
+				-- hud.window.Show(false)
+			-- end 
+		-- end
 	end
 end
 
-
+function OnOutOfCombatTimer()
+	-- check all out of combat windows and hide if resource has replenished or depleted
+	nHealthPercent = self.wndHealth:FindChild("HealthBar"):GetData()
+	nShieldPercent = self.wndHealth:FindChild("ShieldBar"):GetData()
+	glog:info(nShieldPercent)
+end
 
 function PowerHUD:OnFrameUpdate()
 	if not self.wndMain:IsValid() then
