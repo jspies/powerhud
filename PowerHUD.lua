@@ -86,13 +86,18 @@ function PowerHUD:OnPowerHUDOn(cmd, args)
 	if string.len(args) == 0 then
 		self:OnOptionsShow()
 	elseif string.lower(args) == "lock" then
-		self:ToggleLock()
+		self:ToggleLock(nil)
 	elseif string.lower(args) == "reset" then
 		self:ResetPositions()
 	end	
 end
 
+function PowerHUD:OnToggleLock(wndHandler, wndControl, eMouseButton)
+	self:ToggleLock()
+end
+
 function PowerHUD:ToggleLock(bForce)
+	glog:info(bForce)
 	GeminiPosition:ToggleLock(bForce, function(window, bIsLocked)
 		self.config.bLocked = bIsLocked
 	end)
@@ -220,7 +225,7 @@ function PowerHUD:OnOptionsShow()
 	self.wndOptions:FindChild("HealthEnabledButton"):SetCheck(bHealthOn)
 	self.wndOptions:FindChild("HealthSettings"):Enable(bHealthOn)
 	self.wndOptions:FindChild("HealthOOCombatHide"):SetCheck(self.config.tHealthBar.bHideOoc)
-	self.wndOptions:FindChild("LockCheck"):SetCheck(self.config.bLocked or false)
+	self.wndOptions:FindChild("LockCheck"):SetCheck(self.config.bLocked)
 	
 	self.wndOptions:Show(true)
 end
