@@ -17,6 +17,7 @@ local glog
 -- Constants
 -----------------------------------------------------------------------------------------------
 -- e.g. local kiExampleVariableMax = 999
+local kEngineerClassId = 2
  
 -----------------------------------------------------------------------------------------------
 -- Initialization
@@ -67,7 +68,6 @@ function PowerHUD:OnLoad()
 		GeminiPosition = GP:new()
 		GeminiPosition:MakePositionable("resource", self.wndMain)
 		GeminiPosition:MakePositionable("health", self.wndHealth)
-		self:ToggleLock()
 	end)
 
 	
@@ -88,11 +88,13 @@ function PowerHUD:OnPowerHUDOn(cmd, args)
 		self:OnOptionsShow()
 	elseif string.lower(args) == "lock" then
 		self:ToggleLock()
+	elseif string.lower(args) == "reset" then
+		self:ResetPositions()
 	end	
 end
 
-function PowerHUD:ToggleLock()
-	GeminiPosition:ToggleLock(function(window, bIsLocked)
+function PowerHUD:ToggleLock(bForce)
+	GeminiPosition:ToggleLock(bForce, function(window, bIsLocked)
 		self.config.bLocked = bIsLocked
 		window:SetStyle("Picture", not bIsLocked)
 	end)
@@ -153,10 +155,17 @@ function PowerHUD:OnFrameUpdate()
 	local unitPlayer = GameLib.GetPlayerUnit()
 	
 	-- Resource Update
-	local nResourceCurrent = unitPlayer:GetResource(1)
-	local nResourceMax = unitPlayer:GetMaxResource(1)
+	local nResourceCurrent, nResourceMax
+	-- Engineer Resource = Volatility enum EResources 1
+	if unitPlayer:GetClassId() == kEngineerClassId then
+		nResourceCurrent = unitPlayer:GetResource(1)
+		nResourceMax = unitPlayer:GetMaxResource(1)
+	else
+		nResourceCurrent = unitPlayer:GetMana()
+		nResourceMax = unitPlayer:GetMaxMana()
+	end
 	
-	self.wndMain:FindChild("ResourceAmount"):SetText(tostring(nResourceCurrent / nResourceMax * 100) .. "%")
+	self.wndMain:FindChild("ResourceAmount"):SetText(tostring(math.floor((nResourceCurrent / nResourceMax * 100) + 0.5)) .. "%")
 	
 	-- Health Update
 	local nHealth = unitPlayer:GetHealth()
@@ -235,10 +244,15 @@ function PowerHUD:OnRestore(eLevel, tData)
 	if self.config == nil then -- possibly first time or data got wiped
 		self.config = self:Defaults()
 	end
+	self:ToggleLock(self.config.bLocked)
 end
 
 function PowerHUD:OnOptionsClose( wndHandler, wndControl, eMouseButton )
 	self.wndOptions:Show(false)
+end
+
+function PowerHUD:ResetPositions()
+	GeminiPosition:CenterPositions()
 end
 
 

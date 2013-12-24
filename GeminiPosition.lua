@@ -41,9 +41,31 @@ function GeminiPosition:RestorePositions(positions)
 	end
 end
 
+-- Sets all positionables to the center of the screen.
+-- Useful when the user wants to reset or when the addon is first used
+function GeminiPosition:CenterPositions()
+	local tSize = Apollo.GetDisplaySize()
+	local nHCenter = tSize.nWidth / 2 -- horiz center of the screen
+	local nVCenter = tSize.nHeight / 2 -- vertical center of the screen
+
+	self:ForEachPositionable(function(positionable)
+		positionable:SetAnchorOffsets(
+			nHCenter - positionable:GetWidth() / 2,
+			nVCenter - positionable:GetHeight() / 2,
+			nHCenter + positionable:GetWidth() / 2,
+			nVCenter + positionable:GetHeight() / 2
+		)
+	end)
+end
+
 -- Toggles the Lock State and the UI
-function GeminiPosition:ToggleLock(callback)
-	if self.bIsLocked == true then
+-- bForce is used to force a lock or unlock. Leave nil to toggle based on inner state
+function GeminiPosition:ToggleLock(bForce, callback)
+	if not (bForce == nil) then
+		self.bIsLocked = not bForce -- set to not bForce because we are about to toggle it
+	end
+	
+	if self.bIsLocked then
 		self:Unlock(callback)
 	else
 		self:Lock(callback)
