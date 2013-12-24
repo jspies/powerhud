@@ -18,6 +18,10 @@ function GeminiPosition:MakePositionable(key, tWindow)
 		self.Positionables = {}
 	end
 	
+	local form = Apollo.LoadForm("GeminiPositionable.xml", "GeminiPositionableUnlockForm", tWindow, self)
+	form:SetAnchorPoints(0,0,1,1)
+	form:SetAnchorOffsets(0,0,0,0)
+
 	self.Positionables[key] = tWindow
 end
 
@@ -77,6 +81,10 @@ function GeminiPosition:Lock(callback)
 	self.bIsLocked = not self.bIsLocked
 	self:ForEachPositionable(function(positionable)
 		positionable:SetStyle("Moveable", false)
+		local form = positionable:FindChild("GeminiPositionableUnlockForm")
+		if form then
+			form:Show(false)
+		end
 		callback(positionable, self.bIsLocked)
 	end)
 end
@@ -85,6 +93,10 @@ function GeminiPosition:Unlock(callback)
 	self.bIsLocked = not self.bIsLocked
 	self:ForEachPositionable(function(positionable)
 		positionable:SetStyle("Moveable", true)
+		local form = positionable:FindChild("GeminiPositionableUnlockForm")
+		if form then
+			form:Show(true)
+		end
 		callback(positionable)
 	end)
 end

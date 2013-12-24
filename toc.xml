@@ -4,4 +4,5 @@
     <Script Name="PowerHUDWindow.lua"/>
     <Script Name="PowerHUD.lua"/>
     <Form Name="PowerHUD.xml"/>
+    <Form Name="GeminiPositionable.xml"/>
 <Form Name="HealthHUD.xml"/></Addon>

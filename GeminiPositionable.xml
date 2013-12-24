@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Forms>
+    <Form Class="Window" LAnchorPoint="0" LAnchorOffset="10" TAnchorPoint="0" TAnchorOffset="10" RAnchorPoint="0" RAnchorOffset="300" BAnchorPoint="0" BAnchorOffset="225" RelativeToClient="1" Font="Default" Text="" Template="Default" TooltipType="OnCursor" Name="GeminiPositionableUnlockForm" Border="0" Picture="1" SwallowMouseClicks="1" Moveable="0" Escapable="0" Overlapped="1" BGColor="AttributeTechnology" TextColor="ffffffff" TooltipColor="" Sprite="ChatLogSprites:sprChatTiledLine" Tooltip="" IgnoreMouse="1"/>
+</Forms>

@@ -55,9 +55,8 @@ function PowerHUD:OnLoad()
 	Apollo.RegisterEventHandler("UnitEnteredCombat", "OnEnterCombat", self)
 	Apollo.RegisterTimerHandler("OutOfCombatTimer", "OnOutOfCombatTimer", self)
 
-	
     -- load our forms
-    self.wndMain = Apollo.LoadForm("PowerHUD.xml", "PowerHUDForm", nil, self)
+    self.wndResource = Apollo.LoadForm("PowerHUD.xml", "PowerHUDForm", nil, self)
 	self.wndHealth = Apollo.LoadForm("HealthHUD.xml", "HealthForm", nil, self)
 	self.wndOptions = Apollo.LoadForm("PowerHUD.xml", "PowerHUDOptionsForm", nil, self)
 	self.wndOptions:Show(false)
@@ -66,12 +65,12 @@ function PowerHUD:OnLoad()
 	-- here we are saving the customizable HUD elements
 	GeminiPackages:Require("GeminiPosition", function(GP)
 		GeminiPosition = GP:new()
-		GeminiPosition:MakePositionable("resource", self.wndMain)
+		GeminiPosition:MakePositionable("resource", self.wndResource)
 		GeminiPosition:MakePositionable("health", self.wndHealth)
 	end)
 
 	
-    self.wndMain:Show(true)
+    self.wndResource:Show(true)
     self.wndHealth:Show(true)
 
 end
@@ -96,12 +95,11 @@ end
 function PowerHUD:ToggleLock(bForce)
 	GeminiPosition:ToggleLock(bForce, function(window, bIsLocked)
 		self.config.bLocked = bIsLocked
-		window:SetStyle("Picture", not bIsLocked)
 	end)
 end
 
 function PowerHUD:OnEnterCombat(unitPlayer, bInCombat)
-	if unitPlayer ~= GameLib.GetPlayerUnit() or not self.wndMain or not self.wndMain:IsValid() then
+	if unitPlayer ~= GameLib.GetPlayerUnit() or not self.wndResource or not self.wndResource:IsValid() then
 		return
 	end
 	
@@ -109,12 +107,12 @@ function PowerHUD:OnEnterCombat(unitPlayer, bInCombat)
 	
 	if bInCombat then
 		self.wndHealth:Show(true)
-		self.wndMain:Show(true)
+		self.wndResource:Show(true)
 	else
 		if self.config.tHealthBar.bHideOoc then
 			Apollo.CreateTimer("OutOfCombatTimer", 1, false)
 		end
-		self.wndMain:Show(false)
+		self.wndResource:Show(false)
 		
 		-- for name, hud in self.HUDs do
 			-- if hud.config.bHideOoc then
@@ -148,7 +146,7 @@ function PowerHUD:OnOutOfCombatTimer()
 end
 
 function PowerHUD:OnFrameUpdate()
-	if not self.wndMain:IsValid() then
+	if not self.wndResource:IsValid() then
 		return
 	end
 	
@@ -165,7 +163,7 @@ function PowerHUD:OnFrameUpdate()
 		nResourceMax = unitPlayer:GetMaxMana()
 	end
 	
-	self.wndMain:FindChild("ResourceAmount"):SetText(tostring(math.floor((nResourceCurrent / nResourceMax * 100) + 0.5)) .. "%")
+	self.wndResource:FindChild("ResourceAmount"):SetText(tostring(math.floor((nResourceCurrent / nResourceMax * 100) + 0.5)) .. "%")
 	
 	-- Health Update
 	local nHealth = unitPlayer:GetHealth()
