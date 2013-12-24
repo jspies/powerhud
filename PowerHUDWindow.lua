@@ -1,6 +1,6 @@
 local GeminiPackages = _G["GeminiPackages"]
 
-local PowerHUDWindow
+local PowerHUDWindow = {}
 
 -- this class enables the user to create their own custom HUDs
 -- contains a window and its own config
@@ -10,7 +10,7 @@ function PowerHUDWindow:new()
     self.__index = self 
 
     -- initialize variables here
-	self.config
+	self.config = {}
 
     return o
 end

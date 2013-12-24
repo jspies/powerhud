@@ -52,7 +52,7 @@ function PowerHUD:OnLoad()
     Apollo.RegisterSlashCommand("powerhud", "OnPowerHUDOn", self)
 	Apollo.RegisterEventHandler("VarChange_FrameCount", "OnFrameUpdate", self)
 	Apollo.RegisterEventHandler("UnitEnteredCombat", "OnEnterCombat", self)
-	Apollo.RegisterEventHandler("OutOfCombatTimer", "OnOutOfCombatTimer", self)
+	Apollo.RegisterTimerHandler("OutOfCombatTimer", "OnOutOfCombatTimer", self)
 
 	
     -- load our forms
@@ -67,6 +67,7 @@ function PowerHUD:OnLoad()
 		GeminiPosition = GP:new()
 		GeminiPosition:MakePositionable("resource", self.wndMain)
 		GeminiPosition:MakePositionable("health", self.wndHealth)
+		self:ToggleLock()
 	end)
 
 	
@@ -86,10 +87,15 @@ function PowerHUD:OnPowerHUDOn(cmd, args)
 	if string.len(args) == 0 then
 		self:OnOptionsShow()
 	elseif string.lower(args) == "lock" then
-		GeminiPosition:ToggleLock(function(window, bIsLocked)
-			window:SetStyle("Picture", not bIsLocked)
-		end)
+		self:ToggleLock()
 	end	
+end
+
+function PowerHUD:ToggleLock()
+	GeminiPosition:ToggleLock(function(window, bIsLocked)
+		self.config.bLocked = bIsLocked
+		window:SetStyle("Picture", not bIsLocked)
+	end)
 end
 
 function PowerHUD:OnEnterCombat(unitPlayer, bInCombat)
@@ -97,15 +103,17 @@ function PowerHUD:OnEnterCombat(unitPlayer, bInCombat)
 		return
 	end
 	
+	self.bInCombat = bInCombat
+	
 	if bInCombat then
 		self.wndHealth:Show(true)
 		self.wndMain:Show(true)
 	else
 		if self.config.tHealthBar.bHideOoc then
-			self.wndHealth:Show(false)
+			Apollo.CreateTimer("OutOfCombatTimer", 1, false)
 		end
 		self.wndMain:Show(false)
-		Apollo:CreateTimer("OutOfCombatTimer", 1, false)
+		
 		-- for name, hud in self.HUDs do
 			-- if hud.config.bHideOoc then
 				-- hud.window.Show(false)
@@ -114,11 +122,27 @@ function PowerHUD:OnEnterCombat(unitPlayer, bInCombat)
 	end
 end
 
-function OnOutOfCombatTimer()
+function PowerHUD:OnOutOfCombatTimer()
+	if self.bInCombat then
+		return
+	end
+	
 	-- check all out of combat windows and hide if resource has replenished or depleted
-	nHealthPercent = self.wndHealth:FindChild("HealthBar"):GetData()
-	nShieldPercent = self.wndHealth:FindChild("ShieldBar"):GetData()
-	glog:info(nShieldPercent)
+	local bAnyNotFinished = false
+	
+	local unitPlayer = GameLib.GetPlayerUnit()
+	local nShield = unitPlayer:GetShieldCapacity() / unitPlayer:GetShieldCapacityMax()
+	local nHealth = unitPlayer:GetHealth() / unitPlayer:GetMaxHealth()
+		
+	if nShield >= 1 and nHealth >= 1 then
+		self.wndHealth:Show(false)
+	else
+		bAnyNotFinished = true
+	end
+	
+	if bAnyNotFinished then
+		Apollo.CreateTimer("OutOfCombatTimer", 1, false) -- start the timer again
+	end
 end
 
 function PowerHUD:OnFrameUpdate()
@@ -172,6 +196,7 @@ end
 -- Default settings used for config
 function PowerHUD:Defaults()
 	return {
+		bLocked = true,
 		tHealthBar = {
 			bEnabled = true,
 			bHideOoc = true
@@ -188,6 +213,7 @@ function PowerHUD:OnOptionsShow()
 	self.wndOptions:FindChild("HealthEnabledButton"):SetCheck(bHealthOn)
 	self.wndOptions:FindChild("HealthSettings"):Enable(bHealthOn)
 	self.wndOptions:FindChild("HealthOOCombatHide"):SetCheck(self.config.tHealthBar.bHideOoc)
+	self.wndOptions:FindChild("LockCheck"):SetCheck(self.config.bLocked or false)
 	
 	self.wndOptions:Show(true)
 end
@@ -222,6 +248,9 @@ end
 
 function PowerHUD:OnHealthOOCombatHideCheck( wndHandler, wndControl, eMouseButton )
 	self.config.tHealthBar.bHideOoc = wndControl:IsChecked()
+	if not wndControl:IsChecked() then
+		self.wndHealth:Show(true)
+	end
 end
 
 
