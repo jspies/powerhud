@@ -34,7 +34,7 @@ function SimpleHUDWindow:CreateWindow(nType)
 	end
 end
 
-function SimpleHUD:OnEnterCombat()
+function SimpleHUDWindow:OnEnterCombat()
 	
 end
 
@@ -97,3 +97,5 @@ function SimpleHUDWindows:ForEach(callMethod)
 		callMethod(wndWindow)
 	end
 end
+
+GeminiPackages:NewPackage(SimpleHUDWindows, "SimpleHUDWindows", 1)

@@ -11,6 +11,7 @@ local PowerHUD = {}
 
 local GeminiPackages = _G["GeminiPackages"]
 local GeminiPosition
+local SimpleHUDWindow
 local glog 
  
 -----------------------------------------------------------------------------------------------
@@ -29,7 +30,8 @@ function PowerHUD:new(o)
 
     -- initialize variables here
 	self.config = self:Defaults()
-
+	SimpleHUDWindow = GeminiPackages:GetPackage("SimpleHUDWindows")
+	self.aHuds = SimpleHUDWindow:new()
     return o
 end
 
@@ -44,7 +46,7 @@ end
 function PowerHUD:OnLoad()
 	-- store config variables for customization and options page
 	self.config = self:Defaults()
-
+	
 	GeminiPackages:Require("GeminiLogging-1.0", function(GeminiLogging)
 		glog = GeminiLogging:GetLogger()
 	end)
@@ -59,6 +61,7 @@ function PowerHUD:OnLoad()
     self.wndResource = Apollo.LoadForm("PowerHUD.xml", "PowerHUDForm", nil, self)
 	self.wndHealth = Apollo.LoadForm("HealthHUD.xml", "HealthForm", nil, self)
 	self.wndOptions = Apollo.LoadForm("PowerHUD.xml", "PowerHUDOptionsForm", nil, self)
+	
 	self.wndOptions:Show(false)
 	
 	-- GeminiPosition handles boilerplate for windows you would like to save postion and restore
