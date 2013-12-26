@@ -11,7 +11,7 @@ local PowerHUD = {}
 
 local GeminiPackages = _G["GeminiPackages"]
 local GeminiPosition
-local SimpleHUDWindow
+local SimpleHUDWindows
 local glog 
  
 -----------------------------------------------------------------------------------------------
@@ -19,7 +19,8 @@ local glog
 -----------------------------------------------------------------------------------------------
 -- e.g. local kiExampleVariableMax = 999
 local kEngineerClassId = 2
- 
+local kHealthShieldType = 2
+
 -----------------------------------------------------------------------------------------------
 -- Initialization
 -----------------------------------------------------------------------------------------------
@@ -28,11 +29,13 @@ function PowerHUD:new(o)
     setmetatable(o, self)
     self.__index = self 
 
+	SimpleHUDWindows = GeminiPackages:GetPackage("SimpleHUDWindows")
+
     -- initialize variables here
 	self.config = self:Defaults()
-	SimpleHUDWindow = GeminiPackages:GetPackage("SimpleHUDWindows")
-	self.aHuds = SimpleHUDWindow:new()
-    return o
+	self.simpleHUDs = SimpleHUDWindows:new()
+	
+	return o
 end
 
 function PowerHUD:Init()
@@ -45,11 +48,11 @@ end
 -----------------------------------------------------------------------------------------------
 function PowerHUD:OnLoad()
 	-- store config variables for customization and options page
-	self.config = self:Defaults()
 	
 	GeminiPackages:Require("GeminiLogging-1.0", function(GeminiLogging)
 		glog = GeminiLogging:GetLogger()
 	end)
+	
 	
     -- Register handlers for events, slash commands and timer, etc.
     Apollo.RegisterSlashCommand("powerhud", "OnPowerHUDOn", self)
@@ -64,12 +67,14 @@ function PowerHUD:OnLoad()
 	
 	self.wndOptions:Show(false)
 	
+	self.simpleHUDs:CreateWindow(kHealthShieldType, "health")
+	
 	-- GeminiPosition handles boilerplate for windows you would like to save postion and restore
 	-- here we are saving the customizable HUD elements
 	GeminiPackages:Require("GeminiPosition", function(GP)
 		GeminiPosition = GP:new()
-		GeminiPosition:MakePositionable("resource", self.wndResource)
-		GeminiPosition:MakePositionable("health", self.wndHealth)
+		GeminiPosition:MakePositionable("rresource", self.wndResource)
+		GeminiPosition:MakePositionable("rhealth", self.wndHealth)
 	end)
 
 	
@@ -96,11 +101,11 @@ function PowerHUD:OnPowerHUDOn(cmd, args)
 end
 
 function PowerHUD:OnToggleLock(wndHandler, wndControl, eMouseButton)
-	self:ToggleLock()
+	--self:ToggleLock()
+	self.simpleHUDs:ToggleLock()
 end
 
 function PowerHUD:ToggleLock(bForce)
-	glog:info(bForce)
 	GeminiPosition:ToggleLock(bForce, function(window, bIsLocked)
 		self.config.bLocked = bIsLocked
 	end)
@@ -122,12 +127,9 @@ function PowerHUD:OnEnterCombat(unitPlayer, bInCombat)
 		end
 		self.wndResource:Show(false)
 		
-		-- for name, hud in self.HUDs do
-			-- if hud.config.bHideOoc then
-				-- hud.window.Show(false)
-			-- end 
-		-- end
 	end
+	
+	self.simpleHUDs:OnEnterCombat(bInCombat)
 end
 
 function PowerHUD:OnOutOfCombatTimer()
@@ -157,6 +159,8 @@ function PowerHUD:OnFrameUpdate()
 	if not self.wndResource:IsValid() then
 		return
 	end
+	
+	self.simpleHUDs:OnFrame()
 	
 	local unitPlayer = GameLib.GetPlayerUnit()
 	
@@ -245,7 +249,7 @@ function PowerHUD:OnSave(eLevel)
 end
 
 function PowerHUD:OnRestore(eLevel, tData)
-	GeminiPosition:RestorePositions(tData["positions"])
+	--GeminiPosition:RestorePositions(tData["positions"])
 	self.config = tData["config"]
 	if self.config == nil then -- possibly first time or data got wiped
 		self.config = self:Defaults()

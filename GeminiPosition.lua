@@ -1,8 +1,9 @@
 local GeminiPackages = _G["GeminiPackages"]
 
 local GeminiPosition = {}
+local glog 
 
-function GeminiPosition:new()
+function GeminiPosition:new(o)
 	o = o or {}
     setmetatable(o, self)
     self.__index = self 
@@ -10,6 +11,10 @@ function GeminiPosition:new()
     -- initialize variables here
 	self.Positionables = {}
 	self.bIsLocked = true
+	
+	GeminiPackages:Require("GeminiLogging-1.0", function(GeminiLogging)
+		glog = GeminiLogging:GetLogger()
+	end)
     return o
 end
 
@@ -97,15 +102,19 @@ function GeminiPosition:Unlock(callback)
 		if form then
 			form:Show(true)
 		end
-		callback(positionable)
+		callback(positionable, self.bIsLocked)
 	end)
 end
 
 -- iterates each positionable and runs the specified function
 function GeminiPosition:ForEachPositionable(callMethod)
+	local count = 0
 	for key, positionable in pairs(self.Positionables) do
+		count = count + 1
+		glog:info(key)
 		callMethod(positionable)
 	end
+	glog:info("the count is " .. tostring(count))
 end
 
 GeminiPackages:NewPackage(GeminiPosition, "GeminiPosition", 1)
