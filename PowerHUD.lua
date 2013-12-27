@@ -25,9 +25,9 @@ local kHealthShieldType = 2
 -- Initialization
 -----------------------------------------------------------------------------------------------
 function PowerHUD:new(o)
-    o = o or {}
-    setmetatable(o, self)
-    self.__index = self 
+	o = o or {}
+	setmetatable(o, self)
+	self.__index = self 
 
 	SimpleHUDWindows = GeminiPackages:GetPackage("SimpleHUDWindows")
 

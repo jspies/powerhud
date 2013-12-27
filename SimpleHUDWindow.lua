@@ -11,14 +11,13 @@ local kBuffType = 3
 local kPercentageType = 4
 
 local SimpleHUDWindow = {}
-local shudGeminiPosition
 
 -- this class enables the user to create their own custom HUDs
 -- contains a window and its own config
-function SimpleHUDWindow:new(nType, sName)
+function SimpleHUDWindow:new(o, nType, sName)
 	o = o or {}
-    setmetatable(o, self)
-    self.__index = self 
+	setmetatable(o, self)
+	self.__index = self 
 
     -- initialize variables here
 	self.config = {}
@@ -30,12 +29,12 @@ function SimpleHUDWindow:new(nType, sName)
     return o
 end
 
-function SimpleHUDWindow:CreateWindow()
+function SimpleHUDWindow:CreateWindow(GP)
 	-- types supported: progress_bar, percentage, health
 	
 	if self.type == kHealthShieldType then
 		self.window = Apollo.LoadForm("HealthHUD.xml", "HealthForm", nil, self)
-		shudGeminiPosition:MakePositionable(self.name, self.window)
+		GP:MakePositionable(self.name, self.window)
 		self.window:Show(true)
 	end
 	
@@ -109,29 +108,30 @@ end
 --------------------------------------------------------------------
 local SimpleHUDWindows = {}
 local glog 
-function SimpleHUDWindows:new(object)
+function SimpleHUDWindows:new(o)
 	GeminiPackages:Require("GeminiLogging-1.0", function(GeminiLogging)
 		glog = GeminiLogging:GetLogger()
 	end)
 	
-	object = object or {}
-    setmetatable(object, self)
+	o = o or {}
+    setmetatable(o, self)
     self.__index = self 
 
     -- initialize variables here
 	self.tWindows = {}
+	self.GeminiPosition = nil
 	
 	GeminiPackages:Require("GeminiPosition", function(GP)
-		shudGeminiPosition = GP:new()
+		self.GeminiPosition = GP:new()
 	end)
 
-    return object
+    return o
 end
 
 function SimpleHUDWindows:CreateWindow(nType, sKey)
 	if self.tWindows[sKey] == nil then
-		self.tWindows[sKey] = SimpleHUDWindow:new(nType, sKey)
-		self.tWindows[sKey]:CreateWindow()
+		self.tWindows[sKey] = SimpleHUDWindow:new(nil, nType, sKey)
+		self.tWindows[sKey]:CreateWindow(self.GeminiPosition)
 	end
 end
 
@@ -155,7 +155,7 @@ end
 
 function SimpleHUDWindows:ToggleLock(bForce)
 	glog:info(1)
-	shudGeminiPosition:ToggleLock(bForce, function(window, bIsLocked)
+	self.GeminiPosition:ToggleLock(bForce, function(window, bIsLocked)
 		--glog:info(window)
 	end)
 end

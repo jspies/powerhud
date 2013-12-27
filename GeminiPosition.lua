@@ -5,16 +5,17 @@ local glog
 
 function GeminiPosition:new(o)
 	o = o or {}
-    setmetatable(o, self)
-    self.__index = self 
+	setmetatable(o, self)
+	self.__index = self 
 
-    -- initialize variables here
-	self.Positionables = {}
-	self.bIsLocked = true
+	-- initialize variables here
+	o.Positionables = {}
+	o.bIsLocked = true
 	
 	GeminiPackages:Require("GeminiLogging-1.0", function(GeminiLogging)
 		glog = GeminiLogging:GetLogger()
 	end)
+
     return o
 end
 
