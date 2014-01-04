@@ -147,6 +147,14 @@ function SimpleHUDWindows:OnEnterCombat(bInCombat)
 	end)
 end
 
+function SimpleHUDWindows:GetPositions()
+	return self.GeminiPosition:PositionsForSave()
+end
+
+function SimpleHUDWindows:SetPositions(tPositions)
+	self.GeminiPosition:RestorePositions(tPositions)
+end
+
 function SimpleHUDWindows:OnFrame()
 	self:ForEach(function(window)
 		window:OnFrame()

@@ -36,6 +36,8 @@ function GeminiPosition:PositionsForSave()
 	for key, value in pairs(self.Positionables) do
 		local position = {}
 		position["l"], position["t"], position["r"], position["b"] = value:GetAnchorOffsets()
+		position["lp"], position["tp"], position["rp"], position["bp"] = value:GetAnchorPoints()
+
 		positions[key] = position
 	end
 	return positions
@@ -48,6 +50,7 @@ function GeminiPosition:RestorePositions(positions)
 	
 	for key, position in pairs(positions) do
 		self.Positionables[key]:SetAnchorOffsets(position["l"], position["t"], position["r"], position["b"])
+		self.Positionables[key]:SetAnchorPoints(position["lp"], position["tp"], position["rp"], position["bp"])
 	end
 end
 
@@ -112,10 +115,8 @@ function GeminiPosition:ForEachPositionable(callMethod)
 	local count = 0
 	for key, positionable in pairs(self.Positionables) do
 		count = count + 1
-		glog:info(key)
 		callMethod(positionable)
 	end
-	glog:info("the count is " .. tostring(count))
 end
 
 GeminiPackages:NewPackage(GeminiPosition, "GeminiPosition", 1)

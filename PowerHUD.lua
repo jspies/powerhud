@@ -62,7 +62,6 @@ function PowerHUD:OnLoad()
 
     -- load our forms
     self.wndResource = Apollo.LoadForm("PowerHUD.xml", "PowerHUDForm", nil, self)
-	self.wndHealth = Apollo.LoadForm("HealthHUD.xml", "HealthForm", nil, self)
 	self.wndOptions = Apollo.LoadForm("PowerHUD.xml", "PowerHUDOptionsForm", nil, self)
 	
 	self.wndOptions:Show(false)
@@ -74,12 +73,10 @@ function PowerHUD:OnLoad()
 	GeminiPackages:Require("GeminiPosition", function(GP)
 		GeminiPosition = GP:new()
 		GeminiPosition:MakePositionable("rresource", self.wndResource)
-		GeminiPosition:MakePositionable("rhealth", self.wndHealth)
 	end)
 
 	
     self.wndResource:Show(true)
-    self.wndHealth:Show(true)
 
 end
 
@@ -101,14 +98,7 @@ function PowerHUD:OnPowerHUDOn(cmd, args)
 end
 
 function PowerHUD:OnToggleLock(wndHandler, wndControl, eMouseButton)
-	--self:ToggleLock()
 	self.simpleHUDs:ToggleLock()
-end
-
-function PowerHUD:ToggleLock(bForce)
-	GeminiPosition:ToggleLock(bForce, function(window, bIsLocked)
-		self.config.bLocked = bIsLocked
-	end)
 end
 
 function PowerHUD:OnEnterCombat(unitPlayer, bInCombat)
@@ -119,40 +109,12 @@ function PowerHUD:OnEnterCombat(unitPlayer, bInCombat)
 	self.bInCombat = bInCombat
 	
 	if bInCombat then
-		self.wndHealth:Show(true)
 		self.wndResource:Show(true)
 	else
-		if self.config.tHealthBar.bHideOoc then
-			Apollo.CreateTimer("OutOfCombatTimer", 1, false)
-		end
-		self.wndResource:Show(false)
-		
+		self.wndResource:Show(false)		
 	end
 	
 	self.simpleHUDs:OnEnterCombat(bInCombat)
-end
-
-function PowerHUD:OnOutOfCombatTimer()
-	if self.bInCombat then
-		return
-	end
-	
-	-- check all out of combat windows and hide if resource has replenished or depleted
-	local bAnyNotFinished = false
-	
-	local unitPlayer = GameLib.GetPlayerUnit()
-	local nShield = unitPlayer:GetShieldCapacity() / unitPlayer:GetShieldCapacityMax()
-	local nHealth = unitPlayer:GetHealth() / unitPlayer:GetMaxHealth()
-		
-	if nShield >= 1 and nHealth >= 1 then
-		self.wndHealth:Show(false)
-	else
-		bAnyNotFinished = true
-	end
-	
-	if bAnyNotFinished then
-		Apollo.CreateTimer("OutOfCombatTimer", 1, false) -- start the timer again
-	end
 end
 
 function PowerHUD:OnFrameUpdate()
@@ -177,31 +139,6 @@ function PowerHUD:OnFrameUpdate()
 	
 	self.wndResource:FindChild("ResourceAmount"):SetText(tostring(math.floor((nResourceCurrent / nResourceMax * 100) + 0.5)) .. "%")
 	
-	-- Health Update
-	local nHealth = unitPlayer:GetHealth()
-	local nHealthMax = unitPlayer:GetMaxHealth()
-	local wndHealthBar = self.wndHealth:FindChild("HealthBar")
-	wndHealthBar:SetFloor(0)
-	wndHealthBar:SetMax(nHealthMax)
-	wndHealthBar:SetProgress(nHealth)
-	local nHealthHeight = wndHealthBar:GetHeight()
-
-	local nHealthLeft, nHealthTop, nHealthRight, nHealthBottom = self.wndHealth:FindChild("HealthBar"):GetAnchorOffsets()
-	 -- Shield Update
-	local nShield = unitPlayer:GetShieldCapacity()
-	local nShieldMax = unitPlayer:GetShieldCapacityMax()
-	
-	local nPositiveOffset = (nHealthHeight * (1 - nHealth/nHealthMax))
-
-	local wndShieldBar = self.wndHealth:FindChild("ShieldBar")
-	local nShieldHeight = wndShieldBar:GetHeight()
-	local nLeft, nTop, nRight, nBottom = wndShieldBar:GetAnchorOffsets()
-	wndShieldBar:SetAnchorOffsets(nLeft, nHealthTop - nShieldHeight - 1 + nPositiveOffset, nRight, nHealthTop - 1 + nPositiveOffset)
-	
-	self.wndHealth:FindChild("ShieldBar"):SetFloor(0)
-	self.wndHealth:FindChild("ShieldBar"):SetMax(nShieldMax)
-	self.wndHealth:FindChild("ShieldBar"):SetProgress(nShield)
-
 end
 
 -----------------------------------------------------------------
@@ -243,18 +180,19 @@ function PowerHUD:OnSave(eLevel)
 	end
 	local temp = {}
 	temp["positions"] = GeminiPosition:PositionsForSave()
+	temp["gpositions"] = self.simpleHUDs:GetPositions()
 	temp["config"] = self.config
-	
 	return temp
 end
 
 function PowerHUD:OnRestore(eLevel, tData)
-	--GeminiPosition:RestorePositions(tData["positions"])
+	GeminiPosition:RestorePositions(tData["positions"])
 	self.config = tData["config"]
 	if self.config == nil then -- possibly first time or data got wiped
 		self.config = self:Defaults()
 	end
-	self:ToggleLock(self.config.bLocked)
+	self.simpleHUDs:SetPositions(tData["gpositions"])
+	self.simpleHUDs:ToggleLock(self.config.bLocked)
 end
 
 function PowerHUD:OnOptionsClose( wndHandler, wndControl, eMouseButton )
@@ -272,9 +210,6 @@ end
 
 function PowerHUD:OnHealthOOCombatHideCheck( wndHandler, wndControl, eMouseButton )
 	self.config.tHealthBar.bHideOoc = wndControl:IsChecked()
-	if not wndControl:IsChecked() then
-		self.wndHealth:Show(true)
-	end
 end
 
 
