@@ -1,13 +1,13 @@
 -----------------------------------------------------------------------------------------------
--- Client Lua Script for PowerHUD
+-- Client Lua Script for SimpleHUD
 -----------------------------------------------------------------------------------------------
  
 require "Window"
  
 -----------------------------------------------------------------------------------------------
--- PowerHUD Module Definition
+-- SimpleHUD Module Definition
 -----------------------------------------------------------------------------------------------
-local PowerHUD = {} 
+local SimpleHUD = {} 
 
 local GeminiPackages = _G["GeminiPackages"]
 local GeminiPosition
@@ -21,10 +21,16 @@ local glog
 local kEngineerClassId = 2
 local kHealthShieldType = 2
 
+local karHUDTypes = {
+	"Health/Shield Bar",
+	"Resource Percentage",
+	"Buff Debuff Aura"
+}
+
 -----------------------------------------------------------------------------------------------
 -- Initialization
 -----------------------------------------------------------------------------------------------
-function PowerHUD:new(o)
+function SimpleHUD:new(o)
 	o = o or {}
 	setmetatable(o, self)
 	self.__index = self 
@@ -38,15 +44,15 @@ function PowerHUD:new(o)
 	return o
 end
 
-function PowerHUD:Init()
+function SimpleHUD:Init()
     Apollo.RegisterAddon(self, true)
 end
  
 
 -----------------------------------------------------------------------------------------------
--- PowerHUD OnLoad
+-- SimpleHUD OnLoad
 -----------------------------------------------------------------------------------------------
-function PowerHUD:OnLoad()
+function SimpleHUD:OnLoad()
 	-- store config variables for customization and options page
 	
 	GeminiPackages:Require("GeminiLogging-1.0", function(GeminiLogging)
@@ -55,18 +61,16 @@ function PowerHUD:OnLoad()
 	
 	
     -- Register handlers for events, slash commands and timer, etc.
-    Apollo.RegisterSlashCommand("powerhud", "OnPowerHUDOn", self)
+    Apollo.RegisterSlashCommand("simplehud", "OnSimpleHUDOn", self)
 	Apollo.RegisterEventHandler("VarChange_FrameCount", "OnFrameUpdate", self)
 	Apollo.RegisterEventHandler("UnitEnteredCombat", "OnEnterCombat", self)
 	Apollo.RegisterTimerHandler("OutOfCombatTimer", "OnOutOfCombatTimer", self)
 
     -- load our forms
-    self.wndResource = Apollo.LoadForm("PowerHUD.xml", "PowerHUDForm", nil, self)
-	self.wndOptions = Apollo.LoadForm("PowerHUD.xml", "PowerHUDOptionsForm", nil, self)
-	
-	self.wndOptions:Show(false)
-	
-	self.simpleHUDs:CreateWindow(kHealthShieldType, "health")
+    self.wndResource = Apollo.LoadForm("SimpleHUD.xml", "SimpleHUDForm", nil, self)
+	self:CreateOptionsWindow()
+		
+	--self.simpleHUDs:CreateWindow(kHealthShieldType, "health")
 	
 	-- GeminiPosition handles boilerplate for windows you would like to save postion and restore
 	-- here we are saving the customizable HUD elements
@@ -76,18 +80,23 @@ function PowerHUD:OnLoad()
 	end)
 
 	
-    self.wndResource:Show(true)
+    --self.wndResource:Show(true)
 
 end
 
 
 -----------------------------------------------------------------------------------------------
--- PowerHUD Functions
+-- SimpleHUD Functions
 -----------------------------------------------------------------------------------------------
 -- Define general functions here
+function SimpleHUD:CreateOptionsWindow()
+	self.wndOptions = Apollo.LoadForm("SimpleHUD.xml", "SimpleHUDOptionsForm", nil, self)
+	
+	self.wndOptions:Show(false)
+end
 
--- on SlashCommand "/powerhud"
-function PowerHUD:OnPowerHUDOn(cmd, args)
+-- on SlashCommand "/simplehud"
+function SimpleHUD:OnSimpleHUDOn(cmd, args)
 	if string.len(args) == 0 then
 		self:OnOptionsShow()
 	elseif string.lower(args) == "lock" then
@@ -97,11 +106,11 @@ function PowerHUD:OnPowerHUDOn(cmd, args)
 	end	
 end
 
-function PowerHUD:OnToggleLock(wndHandler, wndControl, eMouseButton)
+function SimpleHUD:OnToggleLock(wndHandler, wndControl, eMouseButton)
 	self.simpleHUDs:ToggleLock()
 end
 
-function PowerHUD:OnEnterCombat(unitPlayer, bInCombat)
+function SimpleHUD:OnEnterCombat(unitPlayer, bInCombat)
 	if unitPlayer ~= GameLib.GetPlayerUnit() or not self.wndResource or not self.wndResource:IsValid() then
 		return
 	end
@@ -117,7 +126,7 @@ function PowerHUD:OnEnterCombat(unitPlayer, bInCombat)
 	self.simpleHUDs:OnEnterCombat(bInCombat)
 end
 
-function PowerHUD:OnFrameUpdate()
+function SimpleHUD:OnFrameUpdate()
 	if not self.wndResource:IsValid() then
 		return
 	end
@@ -145,12 +154,12 @@ end
 -- Options Methods
 -----------------------------------------------------------------
 
-function PowerHUD:OnConfigure()
+function SimpleHUD:OnConfigure()
 	self:OnOptionsShow()
 end
 
 -- Default settings used for config
-function PowerHUD:Defaults()
+function SimpleHUD:Defaults()
 	return {
 		bLocked = true,
 		tHealthBar = {
@@ -164,17 +173,14 @@ function PowerHUD:Defaults()
 	}
 end
 
-function PowerHUD:OnOptionsShow()
+function SimpleHUD:OnOptionsShow()
 	local bHealthOn = self.config.tHealthBar.bEnabled
-	self.wndOptions:FindChild("HealthEnabledButton"):SetCheck(bHealthOn)
-	self.wndOptions:FindChild("HealthSettings"):Enable(bHealthOn)
-	self.wndOptions:FindChild("HealthOOCombatHide"):SetCheck(self.config.tHealthBar.bHideOoc)
 	self.wndOptions:FindChild("LockCheck"):SetCheck(self.config.bLocked)
 	
 	self.wndOptions:Show(true)
 end
 
-function PowerHUD:OnSave(eLevel)
+function SimpleHUD:OnSave(eLevel)
 	if eLevel ~= GameLib.CodeEnumAddonSaveLevel.Character then
 		return
 	end
@@ -185,21 +191,22 @@ function PowerHUD:OnSave(eLevel)
 	return temp
 end
 
-function PowerHUD:OnRestore(eLevel, tData)
+function SimpleHUD:OnRestore(eLevel, tData)
 	GeminiPosition:RestorePositions(tData["positions"])
 	self.config = tData["config"]
 	if self.config == nil then -- possibly first time or data got wiped
 		self.config = self:Defaults()
 	end
+	self.simpleHUDs:RestoreHUDs(tData["huds"])
 	self.simpleHUDs:SetPositions(tData["gpositions"])
 	self.simpleHUDs:ToggleLock(self.config.bLocked)
 end
 
-function PowerHUD:OnOptionsClose( wndHandler, wndControl, eMouseButton )
+function SimpleHUD:OnOptionsClose( wndHandler, wndControl, eMouseButton )
 	self.wndOptions:Show(false)
 end
 
-function PowerHUD:ResetPositions()
+function SimpleHUD:ResetPositions()
 	GeminiPosition:CenterPositions()
 end
 
@@ -208,13 +215,41 @@ end
 -- HealthSettings Functions
 -----------------------------------------------------------------------------------------------
 
-function PowerHUD:OnHealthOOCombatHideCheck( wndHandler, wndControl, eMouseButton )
+function SimpleHUD:OnHealthOOCombatHideCheck( wndHandler, wndControl, eMouseButton )
 	self.config.tHealthBar.bHideOoc = wndControl:IsChecked()
 end
 
 
+---------------------------------------------------------------------------------------------------
+-- SimpleHUDOptionsForm Functions
+---------------------------------------------------------------------------------------------------
+
+function SimpleHUD:OnCreateNewHUD( wndHandler, wndControl, eMouseButton )
+	-- need to add the edit form to the view
+	local wndEditView = self.wndOptions:FindChild("EditView")
+	wndEditForm = Apollo.LoadForm("SimpleHUD.xml", "SimpleHUDEditForm", wndEditView, self)
+	wndEditForm:FindChild("TypeDropdownList"):Show(false)
+	
+	for key, strType in pairs(karHUDTypes) do
+		local wndHeader = Apollo.LoadForm("SimpleHUD.xml", "DropdownHeader", wndEditForm:FindChild("TypeDropdownList"), self)
+		wndHeader:FindChild("DropdownHeaderText"):SetText(strType)
+		wndHeader:SetData(strType)
+	end
+	wndEditForm:FindChild("TypeDropdownList"):ArrangeChildrenVert(0, function(a,b) return a:GetData() < b:GetData() end)
+end
+
+---------------------------------------------------------------------------------------------------
+-- SimpleHUDEditForm Functions
+---------------------------------------------------------------------------------------------------
+
+function SimpleHUD:OnHUDTypeDropdownToggle( wndHandler, wndControl, eMouseButton )
+	-- show the dropdown list
+	local wndEditView = self.wndOptions:FindChild("EditView")
+	wndEditView:FindChild("TypeDropdownList"):Show(true)
+end
+
 -----------------------------------------------------------------------------------------------
--- PowerHUD Instance
+-- SimpleHUD Instance
 -----------------------------------------------------------------------------------------------
-local PowerHUDInst = PowerHUD:new()
-PowerHUDInst:Init()
+local SimpleHUDInst = SimpleHUD:new()
+SimpleHUDInst:Init()

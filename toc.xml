@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Addon Author="Sigr" APIVersion="3" Name="PowerHUD" Description="Brings Data you need anywhere you want it">
+<Addon Author="Sigr" APIVersion="3" Name="SimpleHUD" Description="Brings Data you need anywhere you want it">
     <Script Name="GeminiPosition.lua"/>
     <Script Name="SimpleHUDWindow.lua"/>
-    <Script Name="PowerHUD.lua"/>
-    <Form Name="PowerHUD.xml"/>
+    <Script Name="SimpleHUD.lua"/>
+    <Form Name="SimpleHUD.xml"/>
     <Form Name="GeminiPositionable.xml"/>
 <Form Name="HealthHUD.xml"/></Addon>

@@ -128,6 +128,26 @@ function SimpleHUDWindows:new(o)
     return o
 end
 
+function SimpleHUDWindows:RestoreHUDs(tHuds)
+	if tHuds == nil then
+		return
+	end
+	
+	for key, hudInfo in pairs(tHuds) do
+		self:CreateWindow(hudInfo["type"], key)
+	end
+end
+
+function SimpleHUDWindows:GetSaveableHUDs()
+	local tHUDs = {}
+	self:ForEach(function(hud)
+		tHUDs[hud.name] = {
+			type = hud.type
+		}
+	end)
+	return tHUDs
+end
+
 function SimpleHUDWindows:CreateWindow(nType, sKey)
 	if self.tWindows[sKey] == nil then
 		self.tWindows[sKey] = SimpleHUDWindow:new(nil, nType, sKey)
@@ -162,7 +182,6 @@ function SimpleHUDWindows:OnFrame()
 end
 
 function SimpleHUDWindows:ToggleLock(bForce)
-	glog:info(1)
 	self.GeminiPosition:ToggleLock(bForce, function(window, bIsLocked)
 		--glog:info(window)
 	end)
