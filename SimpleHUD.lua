@@ -210,16 +210,6 @@ function SimpleHUD:ResetPositions()
 	GeminiPosition:CenterPositions()
 end
 
-
------------------------------------------------------------------------------------------------
--- HealthSettings Functions
------------------------------------------------------------------------------------------------
-
-function SimpleHUD:OnHealthOOCombatHideCheck( wndHandler, wndControl, eMouseButton )
-	self.config.tHealthBar.bHideOoc = wndControl:IsChecked()
-end
-
-
 ---------------------------------------------------------------------------------------------------
 -- SimpleHUDOptionsForm Functions
 ---------------------------------------------------------------------------------------------------
@@ -246,6 +236,28 @@ function SimpleHUD:OnHUDTypeDropdownToggle( wndHandler, wndControl, eMouseButton
 	-- show the dropdown list
 	local wndEditView = self.wndOptions:FindChild("EditView")
 	wndEditView:FindChild("TypeDropdownList"):Show(true)
+end
+
+function SimpleHUD:OnHUDSettingsSave( wndHandler, wndControl, eMouseButton )
+	-- user asked to save current settings pane
+	-- we need name, type, Hide OOC and any special type settings
+	local wndEditView = self.wndOptions:FindChild("EditView")
+	local strName = wndEditView:FindChild("HudName"):GetText()
+	local strType = wndEditView:FindChild("TypeDropdownButton"):GetText()
+	local bOocHide = wndEditView:FindChild("HUDOOCombatHide"):IsChecked()
+	local bIsVertical = true
+	
+	if strType == "Health Shield" then
+		bIsVertical = wndEditView:FindChild("Vertical"):IsChecked()
+	end
+	
+	-- now, add to simpleHUDs
+	self.simpleHUDs:CreateOrUpdateWindow(strName, {
+		name = strName,
+		type = strType,
+		oocHide = bOocHide,
+		isVertical = bIsVertical
+	})
 end
 
 ---------------------------------------------------------------------------------------------------

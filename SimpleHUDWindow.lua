@@ -14,7 +14,7 @@ local SimpleHUDWindow = {}
 
 -- this class enables the user to create their own custom HUDs
 -- contains a window and its own config
-function SimpleHUDWindow:new(o, nType, sName)
+function SimpleHUDWindow:new(o, tOptions)
 	o = o or {}
 	setmetatable(o, self)
 	self.__index = self 
@@ -23,12 +23,13 @@ function SimpleHUDWindow:new(o, nType, sName)
 	self.config = {}
 	self.config.bHideOoc = true
 	self.config.bFadeAsOne = false
-	self.type = nType
-	self.name = sName
+	self.type = tOptions.type
+	self.name = tOptions.name
 
     return o
 end
 
+-- takes a GeminiPosition instance
 function SimpleHUDWindow:CreateWindow(GP)
 	-- types supported: progress_bar, percentage, health
 	
@@ -148,10 +149,11 @@ function SimpleHUDWindows:GetSaveableHUDs()
 	return tHUDs
 end
 
-function SimpleHUDWindows:CreateWindow(nType, sKey)
-	if self.tWindows[sKey] == nil then
-		self.tWindows[sKey] = SimpleHUDWindow:new(nil, nType, sKey)
-		self.tWindows[sKey]:CreateWindow(self.GeminiPosition)
+function SimpleHUDWindows:CreateOrUpdateWindow(strName, tOptions)
+	if self.tWindows[strName] == nil then -- create new one
+		self.tWindows[strName] = SimpleHUDWindow:new(nil, tOptions)
+		self.tWindows[strName]:CreateWindow(self.GeminiPosition)
+	else -- update existing
 	end
 end
 
