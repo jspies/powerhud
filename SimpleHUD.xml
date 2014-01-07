@@ -38,7 +38,7 @@
         </Control>
         <Control Class="Window" LAnchorPoint="0" LAnchorOffset="20" TAnchorPoint="0" TAnchorOffset="76" RAnchorPoint="0" RAnchorOffset="74" BAnchorPoint="0" BAnchorOffset="99" RelativeToClient="1" Font="Default" Text="" Template="Default" TooltipType="OnCursor" Name="Window" BGColor="ffffffff" TextColor="ffffffff" TooltipColor="" TextId="HousingDecorate_CategoryBtn"/>
         <Control Class="Window" LAnchorPoint="0" LAnchorOffset="21" TAnchorPoint="0" TAnchorOffset="105" RAnchorPoint="0" RAnchorOffset="477" BAnchorPoint="0" BAnchorOffset="367" RelativeToClient="1" Font="Default" Text="" Template="Default" TooltipType="OnCursor" Name="TypeSettings" BGColor="ffffffff" TextColor="ffffffff" TooltipColor=""/>
-        <Control Class="Window" LAnchorPoint="0" LAnchorOffset="23" TAnchorPoint="0" TAnchorOffset="114" RAnchorPoint="0" RAnchorOffset="334" BAnchorPoint="0" BAnchorOffset="236" RelativeToClient="1" Font="Default" Text="" Template="Default" TooltipType="OnCursor" Name="Window1" BGColor="ffffffff" TextColor="ffffffff" TooltipColor=""/>
+        <Control Class="Window" LAnchorPoint="0" LAnchorOffset="23" TAnchorPoint="0" TAnchorOffset="114" RAnchorPoint="0" RAnchorOffset="334" BAnchorPoint="0" BAnchorOffset="358" RelativeToClient="1" Font="Default" Text="" Template="Default" TooltipType="OnCursor" Name="TypeSettingsContainer" BGColor="ffffffff" TextColor="ffffffff" TooltipColor=""/>
         <Control Class="Button" Base="CRB_Basekit:kitBtn_Dropdown_TextBaseHolo2" Font="Thick" ButtonType="PushButton" RadioGroup="" LAnchorPoint="0" LAnchorOffset="75" TAnchorPoint="0" TAnchorOffset="69" RAnchorPoint="0" RAnchorOffset="334" BAnchorPoint="0" BAnchorOffset="101" DT_VCENTER="1" DT_CENTER="1" TooltipType="OnCursor" Name="TypeDropdownButton" BGColor="ffffffff" TextColor="ffffffff" TooltipColor="" Text="" NormalTextColor="ffffffff" PressedTextColor="ffffffff" FlybyTextColor="ffffffff" PressedFlybyTextColor="ffffffff" DisabledTextColor="ffffffff">
             <Event Name="ButtonSignal" Function="OnHUDTypeDropdownToggle"/>
         </Control>
@@ -50,7 +50,10 @@
             <Event Name="ButtonUncheck" Function="OnHealthOOCombatHideCheck"/>
         </Control>
     </Form>
-    <Form Class="Window" LAnchorPoint="0" LAnchorOffset="0" TAnchorPoint="0" TAnchorOffset="0" RAnchorPoint="1" RAnchorOffset="0" BAnchorPoint="0" BAnchorOffset="25" RelativeToClient="1" Font="Default" Text="" Template="Default" TooltipType="OnCursor" Name="DropdownHeader" Border="0" Picture="1" SwallowMouseClicks="1" Moveable="0" Escapable="0" Overlapped="0" BGColor="ffffffff" TextColor="ffffffff" TooltipColor="" Sprite="CRB_Basekit:kitBtn_List_HoloNormal">
-        <Control Class="Window" LAnchorPoint="0" LAnchorOffset="5" TAnchorPoint="0" TAnchorOffset="0" RAnchorPoint="1" RAnchorOffset="0" BAnchorPoint="1" BAnchorOffset="0" RelativeToClient="1" Font="Default" Text="" Template="Default" TooltipType="OnCursor" Name="DropdownHeaderText" BGColor="ffffffff" TextColor="ffffffff" TooltipColor=""/>
+    <Form Class="Window" LAnchorPoint="0" LAnchorOffset="0" TAnchorPoint="0" TAnchorOffset="0" RAnchorPoint="1" RAnchorOffset="0" BAnchorPoint="0" BAnchorOffset="25" RelativeToClient="1" Font="Default" Text="" Template="Default" TooltipType="OnCursor" Name="DropdownItem" Border="0" Picture="1" SwallowMouseClicks="1" Moveable="0" Escapable="0" Overlapped="0" BGColor="ffffffff" TextColor="ffffffff" TooltipColor="" Sprite="CRB_Basekit:kitBtn_List_HoloNormal">
+        <Control Class="Button" LAnchorPoint="0" LAnchorOffset="5" TAnchorPoint="0" TAnchorOffset="0" RAnchorPoint="1" RAnchorOffset="0" BAnchorPoint="1" BAnchorOffset="0" RelativeToClient="1" Font="Default" Text="" Template="Default" TooltipType="OnCursor" Name="DropdownItemButton" BGColor="ffffffff" TextColor="ffffffff" TooltipColor="" NormalTextColor="ffffffff" PressedTextColor="ffffffff" FlybyTextColor="ffffffff" PressedFlybyTextColor="ffffffff" DisabledTextColor="ffffffff" Base="CRB_Basekit:kitBtn_List_Hybrid">
+            <Event Name="ButtonSignal" Function="OnDropdownItemButton"/>
+        </Control>
+        <Event Name="ButtonSigmal" Function="OnTypeSelect"/>
     </Form>
 </Forms>

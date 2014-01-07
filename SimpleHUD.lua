@@ -248,6 +248,24 @@ function SimpleHUD:OnHUDTypeDropdownToggle( wndHandler, wndControl, eMouseButton
 	wndEditView:FindChild("TypeDropdownList"):Show(true)
 end
 
+---------------------------------------------------------------------------------------------------
+-- DropdownItem Functions
+---------------------------------------------------------------------------------------------------
+
+function SimpleHUD:OnDropdownItemButton( wndHandler, wndControl, eMouseButton ) -- wndHandler is the Button. GetData is the string data
+	-- now we know the type the user selected. Load the appropriate settings
+	local type = wndHandler:GetData()
+	
+	-- close the dropdown and set the text to the type
+	local wndEditView = self.wndOptions:FindChild("EditView")
+	wndEditView:FindChild("TypeDropdownList"):Show(false)
+	wndEditView:FindChild("TypeDropdownButton"):SetText(type)
+	
+	-- Load the settings
+	local strSettingsName = "SimpleHUD" .. "HealthShield" .. "Settings"
+	local wndTypeSettings = Apollo.LoadForm("SimpleHUD.xml", strSettingsName, wndEditView:FindChild("TypeSettingsContainer"), self)
+end
+
 -----------------------------------------------------------------------------------------------
 -- SimpleHUD Instance
 -----------------------------------------------------------------------------------------------
