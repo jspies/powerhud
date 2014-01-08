@@ -6,10 +6,10 @@ local GeminiPackages = _G["GeminiPackages"]
 
 ----- constants
 local kProgressType = 1
-local kHealthShieldType = 2
+local kHealthShieldType = "healthshield"
 local kBuffType = 3
 local kPercentageType = 4
-
+local glog
 local SimpleHUDWindow = {}
 
 -- this class enables the user to create their own custom HUDs
@@ -31,13 +31,13 @@ end
 
 -- takes a GeminiPosition instance
 function SimpleHUDWindow:CreateWindow(GP)
-	-- types supported: progress_bar, percentage, health
-	
+
 	if self.type == kHealthShieldType then
 		self.window = Apollo.LoadForm("HealthHUD.xml", "HealthForm", nil, self)
-		GP:MakePositionable(self.name, self.window)
-		self.window:Show(true)
 	end
+	
+	GP:MakePositionable(self.name, self.window)
+	self.window:Show(true)
 	
 	Apollo.RegisterTimerHandler("SimpleHUDOutOfCombatTimer", "OnOutOfCombatTimer", self)
 end
@@ -108,7 +108,7 @@ end
 -- SimpleHUDWindows -- A collection object for the windows
 --------------------------------------------------------------------
 local SimpleHUDWindows = {}
-local glog 
+
 function SimpleHUDWindows:new(o)
 	GeminiPackages:Require("GeminiLogging-1.0", function(GeminiLogging)
 		glog = GeminiLogging:GetLogger()

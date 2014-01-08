@@ -21,11 +21,11 @@ local glog
 local kEngineerClassId = 2
 local kHealthShieldType = 2
 
-local karHUDTypes = {
-	"Health/Shield Bar",
-	"Resource Percentage",
-	"Buff Debuff Aura"
-}
+local karHUDTypes = {}
+karHUDTypes["healthshield"] = "Health/Shield Bar"
+karHUDTypes["resource"] = "Resource Percentage"
+karHUDTypes["buff"] = "Buff Debuff Aura"
+
 
 -----------------------------------------------------------------------------------------------
 -- Initialization
@@ -221,9 +221,10 @@ function SimpleHUD:OnCreateNewHUD( wndHandler, wndControl, eMouseButton )
 	wndEditForm:FindChild("TypeDropdownList"):Show(false)
 	
 	for key, strType in pairs(karHUDTypes) do
-		local wndHeader = Apollo.LoadForm("SimpleHUD.xml", "DropdownHeader", wndEditForm:FindChild("TypeDropdownList"), self)
-		wndHeader:FindChild("DropdownHeaderText"):SetText(strType)
-		wndHeader:SetData(strType)
+		local wndItem = Apollo.LoadForm("SimpleHUD.xml", "DropdownItem", wndEditForm:FindChild("TypeDropdownList"), self)
+		wndItem:FindChild("DropdownItemButton"):SetText(strType)
+		wndItem:FindChild("DropdownItemButton"):SetData(key)
+		wndItem:SetData(strType)
 	end
 	wndEditForm:FindChild("TypeDropdownList"):ArrangeChildrenVert(0, function(a,b) return a:GetData() < b:GetData() end)
 end
@@ -243,7 +244,7 @@ function SimpleHUD:OnHUDSettingsSave( wndHandler, wndControl, eMouseButton )
 	-- we need name, type, Hide OOC and any special type settings
 	local wndEditView = self.wndOptions:FindChild("EditView")
 	local strName = wndEditView:FindChild("HudName"):GetText()
-	local strType = wndEditView:FindChild("TypeDropdownButton"):GetText()
+	local strType = wndEditView:FindChild("TypeDropdownButton"):GetData()
 	local bOocHide = wndEditView:FindChild("HUDOOCombatHide"):IsChecked()
 	local bIsVertical = true
 	
@@ -264,14 +265,15 @@ end
 -- DropdownItem Functions
 ---------------------------------------------------------------------------------------------------
 
-function SimpleHUD:OnDropdownItemButton( wndHandler, wndControl, eMouseButton ) -- wndHandler is the Button. GetData is the string data
+function SimpleHUD:OnDropdownItemButton( wndHandler, wndControl, eMouseButton ) -- wndHandler is the Button.
 	-- now we know the type the user selected. Load the appropriate settings
-	local type = wndHandler:GetData()
-	
+	local type = wndHandler:GetText()
+
 	-- close the dropdown and set the text to the type
 	local wndEditView = self.wndOptions:FindChild("EditView")
 	wndEditView:FindChild("TypeDropdownList"):Show(false)
 	wndEditView:FindChild("TypeDropdownButton"):SetText(type)
+	wndEditView:FindChild("TypeDropdownButton"):SetData(wndHandler:GetData())
 	
 	-- Load the settings
 	local strSettingsName = "SimpleHUD" .. "HealthShield" .. "Settings"
