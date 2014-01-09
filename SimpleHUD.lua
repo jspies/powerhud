@@ -23,7 +23,7 @@ local kHealthShieldType = 2
 
 local karHUDTypes = {}
 karHUDTypes["healthshield"] = "Health/Shield Bar"
-karHUDTypes["resource"] = "Resource Percentage"
+karHUDTypes["percentage"] = "Resource Percentage"
 karHUDTypes["buff"] = "Buff Debuff Aura"
 
 
@@ -66,21 +66,7 @@ function SimpleHUD:OnLoad()
 	Apollo.RegisterEventHandler("UnitEnteredCombat", "OnEnterCombat", self)
 	Apollo.RegisterTimerHandler("OutOfCombatTimer", "OnOutOfCombatTimer", self)
 
-    -- load our forms
-    self.wndResource = Apollo.LoadForm("SimpleHUD.xml", "SimpleHUDForm", nil, self)
 	self:CreateOptionsWindow()
-		
-	--self.simpleHUDs:CreateWindow(kHealthShieldType, "health")
-	
-	-- GeminiPosition handles boilerplate for windows you would like to save postion and restore
-	-- here we are saving the customizable HUD elements
-	GeminiPackages:Require("GeminiPosition", function(GP)
-		GeminiPosition = GP:new()
-		GeminiPosition:MakePositionable("rresource", self.wndResource)
-	end)
-
-	
-    --self.wndResource:Show(true)
 
 end
 
@@ -111,26 +97,19 @@ function SimpleHUD:OnToggleLock(wndHandler, wndControl, eMouseButton)
 end
 
 function SimpleHUD:OnEnterCombat(unitPlayer, bInCombat)
-	if unitPlayer ~= GameLib.GetPlayerUnit() or not self.wndResource or not self.wndResource:IsValid() then
+	if unitPlayer ~= GameLib.GetPlayerUnit() then
 		return
 	end
 	
 	self.bInCombat = bInCombat
 	
-	if bInCombat then
-		self.wndResource:Show(true)
-	else
-		self.wndResource:Show(false)		
-	end
-	
 	self.simpleHUDs:OnEnterCombat(bInCombat)
 end
 
 function SimpleHUD:OnFrameUpdate()
-	if not self.wndResource:IsValid() then
-		return
+	if self.tHudsToRestore ~= nil then
+		self:RestoreHUDs()
 	end
-	
 	self.simpleHUDs:OnFrame()
 	
 	local unitPlayer = GameLib.GetPlayerUnit()
@@ -146,7 +125,7 @@ function SimpleHUD:OnFrameUpdate()
 		nResourceMax = unitPlayer:GetMaxMana()
 	end
 	
-	self.wndResource:FindChild("ResourceAmount"):SetText(tostring(math.floor((nResourceCurrent / nResourceMax * 100) + 0.5)) .. "%")
+	--self.wndResource:FindChild("ResourceAmount"):SetText(tostring(math.floor((nResourceCurrent / nResourceMax * 100) + 0.5)) .. "%")
 	
 end
 
@@ -174,7 +153,6 @@ function SimpleHUD:Defaults()
 end
 
 function SimpleHUD:OnOptionsShow()
-	local bHealthOn = self.config.tHealthBar.bEnabled
 	self.wndOptions:FindChild("LockCheck"):SetCheck(self.config.bLocked)
 	
 	self.wndOptions:Show(true)
@@ -185,21 +163,26 @@ function SimpleHUD:OnSave(eLevel)
 		return
 	end
 	local temp = {}
-	temp["positions"] = GeminiPosition:PositionsForSave()
-	temp["gpositions"] = self.simpleHUDs:GetPositions()
+	temp["huds"] = self.simpleHUDs:SerializeHuds()
 	temp["config"] = self.config
 	return temp
 end
 
 function SimpleHUD:OnRestore(eLevel, tData)
-	GeminiPosition:RestorePositions(tData["positions"])
+	--GeminiPosition:RestorePositions(tData["positions"])
 	self.config = tData["config"]
 	if self.config == nil then -- possibly first time or data got wiped
 		self.config = self:Defaults()
 	end
-	self.simpleHUDs:RestoreHUDs(tData["huds"])
-	self.simpleHUDs:SetPositions(tData["gpositions"])
+	
+	self.tHudsToRestore = tData["huds"] -- we store it to load later since not all of the xml files have been loaded
+	--self.simpleHUDs:SetPositions(tData["gpositions"])
+	end
+
+function SimpleHUD:RestoreHUDs()
+	self.simpleHUDs:RestoreHUDs(self.tHudsToRestore)
 	self.simpleHUDs:ToggleLock(self.config.bLocked)
+	self.tHudsToRestore = nil
 end
 
 function SimpleHUD:OnOptionsClose( wndHandler, wndControl, eMouseButton )

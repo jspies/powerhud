@@ -8,40 +8,61 @@ local GeminiPackages = _G["GeminiPackages"]
 local kProgressType = 1
 local kHealthShieldType = "healthshield"
 local kBuffType = 3
-local kPercentageType = 4
+local kPercentageType = "percentage"
 local glog
 local SimpleHUDWindow = {}
 
 -- this class enables the user to create their own custom HUDs
 -- contains a window and its own config
-function SimpleHUDWindow:new(o, tOptions)
+function SimpleHUDWindow:new(o)
 	o = o or {}
 	setmetatable(o, self)
 	self.__index = self 
 
     -- initialize variables here
 	self.config = {}
-	self.config.bHideOoc = true
-	self.config.bFadeAsOne = false
-	self.type = tOptions.type
-	self.name = tOptions.name
+	
 
     return o
 end
 
 -- takes a GeminiPosition instance
-function SimpleHUDWindow:CreateWindow(GP)
-
+function SimpleHUDWindow:CreateWindow(tOptions, GP)
+	self.GP = GP
+	
+	self.config.bHideOoc = true
+	self.config.bFadeAsOne = false
+	self.type = tOptions.type
+	self.name = tOptions.name
+	
 	if self.type == kHealthShieldType then
 		self.window = Apollo.LoadForm("HealthHUD.xml", "HealthForm", nil, self)
 	end
 	
+	if self.type == kPercentageType then
+		self.window = Apollo.LoadForm("SimpleHUD.xml", "SimpleHUDPercentage", nil, self)
+	end
+	
 	GP:MakePositionable(self.name, self.window)
+	if tOptions.position ~= nil then
+		local position = tOptions.position
+		self.window:SetAnchorOffsets(position["l"], position["t"], position["r"], position["b"])
+		self.window:SetAnchorPoints(position["lp"], position["tp"], position["rp"], position["bp"])
+	end
+	
 	self.window:Show(true)
 	
 	Apollo.RegisterTimerHandler("SimpleHUDOutOfCombatTimer", "OnOutOfCombatTimer", self)
 end
 
+function SimpleHUDWindow:Serialize()
+	local temp = {}
+	temp["config"] = self.config
+	temp["type"] = self.type
+	temp["name"] = self.name
+	temp["position"] = self.GP:PositionFor(self.name)
+	return temp
+end
 ------------------------------------------------------------------------------------
 -- OnEnterCombat Callbacks
 ------------------------------------------------------------------------------------
@@ -74,6 +95,10 @@ function SimpleHUDWindow:OnFrame()
 	if self.type == kHealthShieldType then
 		self:OnHealthShieldFrame()
 	end
+	
+	if self.type == kPercentageType then
+		self:OnPercentageFrame()
+	end
 end
 
 -- this is a special type of window. can't be a progress bar since we want progress and shield in one
@@ -102,6 +127,23 @@ function SimpleHUDWindow:OnHealthShieldFrame()
 	wndShieldBar:SetFloor(0)
 	wndShieldBar:SetMax(nShieldMax)
 	wndShieldBar:SetProgress(nShield)
+end
+
+function SimpleHUDWindow:OnPercentageFrame()
+
+	local unitPlayer = GameLib.GetPlayerUnit()
+
+	local nResourceCurrent, nResourceMax
+	-- Engineer Resource = Volatility enum EResources 1
+	if unitPlayer:GetClassId() == kEngineerClassId then
+		nResourceCurrent = unitPlayer:GetResource(1)
+		nResourceMax = unitPlayer:GetMaxResource(1)
+	else
+		nResourceCurrent = unitPlayer:GetMana()
+		nResourceMax = unitPlayer:GetMaxMana()
+	end
+		
+	self.window:FindChild("PercentageText"):SetText(tostring(math.floor((nResourceCurrent / nResourceMax * 100) + 0.5)) .. "%")
 end
 
 --------------------------------------------------------------------
@@ -135,24 +177,18 @@ function SimpleHUDWindows:RestoreHUDs(tHuds)
 	end
 	
 	for key, hudInfo in pairs(tHuds) do
-		self:CreateWindow(hudInfo["type"], key)
+		local tOptions = hudInfo["config"]
+		tOptions["name"] = hudInfo["name"]
+		tOptions["type"] = hudInfo["type"]
+		tOptions["position"] = hudInfo["position"]
+		self:CreateOrUpdateWindow(hudInfo["name"], tOptions)
 	end
-end
-
-function SimpleHUDWindows:GetSaveableHUDs()
-	local tHUDs = {}
-	self:ForEach(function(hud)
-		tHUDs[hud.name] = {
-			type = hud.type
-		}
-	end)
-	return tHUDs
 end
 
 function SimpleHUDWindows:CreateOrUpdateWindow(strName, tOptions)
 	if self.tWindows[strName] == nil then -- create new one
-		self.tWindows[strName] = SimpleHUDWindow:new(nil, tOptions)
-		self.tWindows[strName]:CreateWindow(self.GeminiPosition)
+		self.tWindows[strName] = SimpleHUDWindow:new()
+		self.tWindows[strName]:CreateWindow(tOptions, self.GeminiPosition)
 	else -- update existing
 	end
 end
@@ -167,6 +203,17 @@ function SimpleHUDWindows:OnEnterCombat(bInCombat)
 			end
 		end
 	end)
+end
+
+-- returns the huds in a table so they can be saved and easily restored
+function SimpleHUDWindows:SerializeHuds()
+	local tHuds = {}
+	local count = 0
+	self:ForEach(function(hud)
+		tHuds[count] = hud:Serialize()
+		count = count + 1
+	end)
+	return tHuds
 end
 
 function SimpleHUDWindows:GetPositions()
@@ -185,7 +232,7 @@ end
 
 function SimpleHUDWindows:ToggleLock(bForce)
 	self.GeminiPosition:ToggleLock(bForce, function(window, bIsLocked)
-		--glog:info(window)
+		
 	end)
 end
 

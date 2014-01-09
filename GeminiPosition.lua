@@ -43,6 +43,13 @@ function GeminiPosition:PositionsForSave()
 	return positions
 end
 
+function GeminiPosition:PositionFor(key)
+	local position = {}
+	position["l"], position["t"], position["r"], position["b"] = self.Positionables[key]:GetAnchorOffsets()
+	position["lp"], position["tp"], position["rp"], position["bp"] = self.Positionables[key]:GetAnchorPoints()
+	return position
+end
+
 function GeminiPosition:RestorePositions(positions)
 	if positions == nil then
 		return
