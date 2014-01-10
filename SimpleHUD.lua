@@ -17,7 +17,6 @@ local glog
 -----------------------------------------------------------------------------------------------
 -- Constants
 -----------------------------------------------------------------------------------------------
--- e.g. local kiExampleVariableMax = 999
 local kEngineerClassId = 2
 local kHealthShieldType = 2
 
@@ -183,6 +182,10 @@ function SimpleHUD:RestoreHUDs()
 	self.simpleHUDs:RestoreHUDs(self.tHudsToRestore)
 	self.simpleHUDs:ToggleLock(self.config.bLocked)
 	self.tHudsToRestore = nil
+end
+
+function SimpleHUD:InitHUDList()
+	self.wndHudList = self.wndOptions:FindChild('HudsView')
 end
 
 function SimpleHUD:OnOptionsClose( wndHandler, wndControl, eMouseButton )
