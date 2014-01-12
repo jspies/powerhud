@@ -20,11 +20,12 @@ function GeminiList:Init(tOptions)
 	self.wndItemList = tOptions.window
 	self.strXmlFile = tOptions.xmlFile
 	self.strItemTemplate = tOptions.itemTemplate
+	self.OnSelectCallback = tOptions.onSelect
 	self.children = {}
 end
 
 function GeminiList:AddItem(fCreateWindow)
-	local itemWindow = Apollo.LoadForm(self.strXmlFile, self.strItemTemplate, self.window, self)
+	local itemWindow = Apollo.LoadForm(self.strXmlFile, self.strItemTemplate, self.wndItemList, self)
 	fCreateWindow(itemWindow)
 	self.children[#self.children] = itemWindow
 
@@ -36,7 +37,12 @@ function GeminiList:Update(window, fUpdateWindow)
 	self.wndItemList:ArrangeChildrenVert()
 end
 
-function GeminiList:OnListItemClick()
+function GeminiList:OnItemSelect(wndHandler, wndControl)
+ 	if wndHandler ~= wndControl then
+        return
+    end
+	local strName = wndControl:GetText()
+	self.OnSelectCallback(strName)
 end
 
 GeminiPackages:NewPackage(GeminiList, "GeminiList", 1)

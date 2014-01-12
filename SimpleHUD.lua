@@ -58,7 +58,6 @@ function SimpleHUD:OnLoad()
 		glog = GeminiLogging:GetLogger()
 	end)
 	
-	
     -- Register handlers for events, slash commands and timer, etc.
     Apollo.RegisterSlashCommand("simplehud", "OnSimpleHUDOn", self)
 	Apollo.RegisterEventHandler("VarChange_FrameCount", "OnFrameUpdate", self)
@@ -66,7 +65,17 @@ function SimpleHUD:OnLoad()
 	Apollo.RegisterTimerHandler("OutOfCombatTimer", "OnOutOfCombatTimer", self)
 
 	self:CreateOptionsWindow()
-
+	GeminiPackages:Require("GeminiList", function(GeminiList)
+		self.GLItemList = GeminiList:new()
+		self.GLItemList:Init({
+			window = self.wndOptions:FindChild("HudsList"),
+			onSelect = function(strName)
+				self:LoadExistingEditForm(strName)
+			end,
+			xmlFile = "SimpleHUD.xml",
+			itemTemplate = "HudListItem"
+		})
+	end)
 end
 
 
@@ -109,22 +118,7 @@ function SimpleHUD:OnFrameUpdate()
 	if self.tHudsToRestore ~= nil then
 		self:RestoreHUDs()
 	end
-	self.simpleHUDs:OnFrame()
-	
-	local unitPlayer = GameLib.GetPlayerUnit()
-	
-	-- Resource Update
-	local nResourceCurrent, nResourceMax
-	-- Engineer Resource = Volatility enum EResources 1
-	if unitPlayer:GetClassId() == kEngineerClassId then
-		nResourceCurrent = unitPlayer:GetResource(1)
-		nResourceMax = unitPlayer:GetMaxResource(1)
-	else
-		nResourceCurrent = unitPlayer:GetMana()
-		nResourceMax = unitPlayer:GetMaxMana()
-	end
-	
-	--self.wndResource:FindChild("ResourceAmount"):SetText(tostring(math.floor((nResourceCurrent / nResourceMax * 100) + 0.5)) .. "%")
+	self.simpleHUDs:OnFrame()	
 	
 end
 
@@ -168,19 +162,23 @@ function SimpleHUD:OnSave(eLevel)
 end
 
 function SimpleHUD:OnRestore(eLevel, tData)
-	--GeminiPosition:RestorePositions(tData["positions"])
 	self.config = tData["config"]
 	if self.config == nil then -- possibly first time or data got wiped
 		self.config = self:Defaults()
 	end
 	
 	self.tHudsToRestore = tData["huds"] -- we store it to load later since not all of the xml files have been loaded
-	--self.simpleHUDs:SetPositions(tData["gpositions"])
-	end
+end
 
 function SimpleHUD:RestoreHUDs()
 	self.simpleHUDs:RestoreHUDs(self.tHudsToRestore)
 	self.simpleHUDs:ToggleLock(self.config.bLocked)
+	-- need to add to options list as well
+	for index, hud in pairs(self.tHudsToRestore) do
+		self.GLItemList:AddItem(function(window)
+			window:SetText(hud.name)
+		end)
+	end
 	self.tHudsToRestore = nil
 end
 
@@ -203,6 +201,11 @@ end
 function SimpleHUD:OnCreateNewHUD( wndHandler, wndControl, eMouseButton )
 	-- need to add the edit form to the view
 	local wndEditView = self.wndOptions:FindChild("EditView")
+	local existingForm = wndEditView:FindChild("SimpleHUDEditForm")
+	if existingForm ~= nil then
+		existingForm:Destroy()
+	end
+
 	wndEditForm = Apollo.LoadForm("SimpleHUD.xml", "SimpleHUDEditForm", wndEditView, self)
 	wndEditForm:FindChild("TypeDropdownList"):Show(false)
 	
@@ -245,6 +248,23 @@ function SimpleHUD:OnHUDSettingsSave( wndHandler, wndControl, eMouseButton )
 		oocHide = bOocHide,
 		isVertical = bIsVertical
 	})
+	self.GLItemList:AddItem(function(window)
+		window:SetText(strName)
+	end)
+	wndEditView:FindChild("SimpleHUDEditForm"):Destroy()
+end
+
+function SimpleHUD:LoadExistingEditForm(strName)
+	self:OnCreateNewHUD(nil, nil, nil)
+	-- now need to populate all the fields
+	local hud = self.simpleHUDs:GetHudByName(strName)
+	local wndEditView = self.wndOptions:FindChild("EditView")
+	wndEditView:FindChild("HudName"):SetText(hud.name)
+	wndEditView:FindChild("TypeDropdownButton"):SetText(karHUDTypes[hud.type])
+	wndEditView:FindChild("TypeDropdownButton"):SetData(hud.type)
+
+	glog:info(hud)
+
 end
 
 ---------------------------------------------------------------------------------------------------

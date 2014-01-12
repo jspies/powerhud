@@ -236,6 +236,10 @@ function SimpleHUDWindows:ToggleLock(bForce)
 	end)
 end
 
+function SimpleHUDWindows:GetHudByName(strName)
+	return self.tWindows[strName]
+end
+
 function SimpleHUDWindows:ForEach(callMethod)
 	for key, wndWindow in pairs(self.tWindows) do
 		callMethod(wndWindow)
