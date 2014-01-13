@@ -30,11 +30,6 @@ end
 function SimpleHUDWindow:CreateWindow(tOptions, GP)
 	self.GP = GP
 	
-	self.config.bHideOoc = true
-	self.config.bFadeAsOne = false
-	self.type = tOptions.type
-	self.name = tOptions.name
-	
 	if self.type == kHealthShieldType then
 		self.window = Apollo.LoadForm("HealthHUD.xml", "HealthForm", nil, self)
 	end
@@ -42,17 +37,27 @@ function SimpleHUDWindow:CreateWindow(tOptions, GP)
 	if self.type == kPercentageType then
 		self.window = Apollo.LoadForm("SimpleHUD.xml", "SimpleHUDPercentage", nil, self)
 	end
+
+	GP:MakePositionable(tOptions.name, self.window)
+
+	self:Update(tOptions)
 	
-	GP:MakePositionable(self.name, self.window)
+	self.window:Show(true)
+	
+	Apollo.RegisterTimerHandler("SimpleHUDOutOfCombatTimer", "OnOutOfCombatTimer", self)
+end
+
+function SimpleHUDWindow:Update(tOptions)
+	self.config.bHideOoc = true
+	self.config.bFadeAsOne = false
+	self.type = tOptions.type
+	self.name = tOptions.name
+	
 	if tOptions.position ~= nil then
 		local position = tOptions.position
 		self.window:SetAnchorOffsets(position["l"], position["t"], position["r"], position["b"])
 		self.window:SetAnchorPoints(position["lp"], position["tp"], position["rp"], position["bp"])
 	end
-	
-	self.window:Show(true)
-	
-	Apollo.RegisterTimerHandler("SimpleHUDOutOfCombatTimer", "OnOutOfCombatTimer", self)
 end
 
 function SimpleHUDWindow:Serialize()
@@ -185,12 +190,36 @@ function SimpleHUDWindows:RestoreHUDs(tHuds)
 	end
 end
 
-function SimpleHUDWindows:CreateOrUpdateWindow(strName, tOptions)
+function SimpleHUDWindows:CreateWindow(tOptions)
+	local id = self:GenerateId()
+	self.tWindows[id] = SimpleHudWindow:new()
+	self.tWindows[id]:CreateWindow(tOptions, self.GeminiPosition)
+end
+
+function SimpleHUDWindows:UpdateWindow(hudId, tOptions)
+	if self.tWindows[hudId] == nil then
+		return
+	end
+
+	self.tWindows[hudId]:Update(tOptions)
+end
+
+function SimpleHUDWindows:CreateOrUpdateWindow(iId, tOptions)
 	if self.tWindows[strName] == nil then -- create new one
 		self.tWindows[strName] = SimpleHUDWindow:new()
 		self.tWindows[strName]:CreateWindow(tOptions, self.GeminiPosition)
 	else -- update existing
 	end
+end
+
+function SimpleHUDWindows:GenerateId()
+	local maxId = 0
+	self:ForEach(function(window)
+		if window.hudId > maxId then
+			maxId = window.hudId
+		end
+	end)
+	return maxId + 1
 end
 
 function SimpleHUDWindows:OnEnterCombat(bInCombat)

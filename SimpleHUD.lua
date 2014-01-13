@@ -233,6 +233,7 @@ function SimpleHUD:OnHUDSettingsSave( wndHandler, wndControl, eMouseButton )
 	-- we need name, type, Hide OOC and any special type settings
 	local wndEditView = self.wndOptions:FindChild("EditView")
 	local strName = wndEditView:FindChild("HudName"):GetText()
+	local iId = wndEditView:FindChild("HudName"):GetData()
 	local strType = wndEditView:FindChild("TypeDropdownButton"):GetData()
 	local bOocHide = wndEditView:FindChild("HUDOOCombatHide"):IsChecked()
 	local bIsVertical = true
@@ -240,17 +241,23 @@ function SimpleHUD:OnHUDSettingsSave( wndHandler, wndControl, eMouseButton )
 	if strType == "Health Shield" then
 		bIsVertical = wndEditView:FindChild("Vertical"):IsChecked()
 	end
+
+	local options = {
+			name = strName,
+			type = strType,
+			oocHide = bOocHide,
+			isVertical = bIsVertical
+		}
 	
-	-- now, add to simpleHUDs
-	self.simpleHUDs:CreateOrUpdateWindow(strName, {
-		name = strName,
-		type = strType,
-		oocHide = bOocHide,
-		isVertical = bIsVertical
-	})
-	self.GLItemList:AddItem(function(window)
-		window:SetText(strName)
-	end)
+	if iId ~= nil then
+		self.simpleHuds:UpdateWindow(iId, options)
+	else
+		self.simpleHUDs:CreateWindow(options)
+		self.GLItemList:AddItem(function(window)
+			window:SetText(strName)
+		end)
+	end
+	
 	wndEditView:FindChild("SimpleHUDEditForm"):Destroy()
 end
 
@@ -260,10 +267,9 @@ function SimpleHUD:LoadExistingEditForm(strName)
 	local hud = self.simpleHUDs:GetHudByName(strName)
 	local wndEditView = self.wndOptions:FindChild("EditView")
 	wndEditView:FindChild("HudName"):SetText(hud.name)
+	wndEditView:FindChild("HudName"):SetData(hud.hudId)
 	wndEditView:FindChild("TypeDropdownButton"):SetText(karHUDTypes[hud.type])
 	wndEditView:FindChild("TypeDropdownButton"):SetData(hud.type)
-
-	glog:info(hud)
 
 end
 
