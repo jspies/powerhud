@@ -69,8 +69,8 @@ function SimpleHUD:OnLoad()
 		self.GLItemList = GeminiList:new()
 		self.GLItemList:Init({
 			window = self.wndOptions:FindChild("HudsList"),
-			onSelect = function(strName)
-				self:LoadExistingEditForm(strName)
+			onSelect = function(iId)
+				self:LoadExistingEditForm(iId)
 			end,
 			xmlFile = "SimpleHUD.xml",
 			itemTemplate = "HudListItem"
@@ -177,6 +177,7 @@ function SimpleHUD:RestoreHUDs()
 	for index, hud in pairs(self.tHudsToRestore) do
 		self.GLItemList:AddItem(function(window)
 			window:SetText(hud.name)
+			window:SetData(hub.hudId)
 		end)
 	end
 	self.tHudsToRestore = nil
@@ -261,10 +262,10 @@ function SimpleHUD:OnHUDSettingsSave( wndHandler, wndControl, eMouseButton )
 	wndEditView:FindChild("SimpleHUDEditForm"):Destroy()
 end
 
-function SimpleHUD:LoadExistingEditForm(strName)
+function SimpleHUD:LoadExistingEditForm(iId)
 	self:OnCreateNewHUD(nil, nil, nil)
 	-- now need to populate all the fields
-	local hud = self.simpleHUDs:GetHudByName(strName)
+	local hud = self.simpleHUDs:GetHudById(iId)
 	local wndEditView = self.wndOptions:FindChild("EditView")
 	wndEditView:FindChild("HudName"):SetText(hud.name)
 	wndEditView:FindChild("HudName"):SetData(hud.hudId)

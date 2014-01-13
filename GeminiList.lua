@@ -41,8 +41,8 @@ function GeminiList:OnItemSelect(wndHandler, wndControl)
  	if wndHandler ~= wndControl then
         return
     end
-	local strName = wndControl:GetText()
-	self.OnSelectCallback(strName)
+	local iId = wndControl:GetData()
+	self.OnSelectCallback(iId)
 end
 
 GeminiPackages:NewPackage(GeminiList, "GeminiList", 1)

@@ -265,8 +265,8 @@ function SimpleHUDWindows:ToggleLock(bForce)
 	end)
 end
 
-function SimpleHUDWindows:GetHudByName(strName)
-	return self.tWindows[strName]
+function SimpleHUDWindows:GetHudById(iId)
+	return self.tWindows[iId]
 end
 
 function SimpleHUDWindows:ForEach(callMethod)
