@@ -58,6 +58,10 @@ function SimpleHUDWindow:Update(tOptions)
 		self.window:SetAnchorOffsets(position["l"], position["t"], position["r"], position["b"])
 		self.window:SetAnchorPoints(position["lp"], position["tp"], position["rp"], position["bp"])
 	end
+	
+	if self.config.vertical == true then
+		self:SetVertical()
+	end
 end
 
 function SimpleHUDWindow:Serialize()
@@ -67,6 +71,11 @@ function SimpleHUDWindow:Serialize()
 	temp["name"] = self.name
 	temp["position"] = self.GP:PositionFor(self.name)
 	return temp
+end
+
+function SimpleHUDWindow:SetVertical()
+	self.window:FindChild("HealthBar").SetAttribute("VerticallyAligned", self.config.vertical)
+	self.window:FindChild("ShieldBar").SetAttribute("VerticallyAligned", self.config.vertical)
 end
 ------------------------------------------------------------------------------------
 -- OnEnterCombat Callbacks
