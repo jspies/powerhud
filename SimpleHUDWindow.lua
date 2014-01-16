@@ -195,13 +195,13 @@ function SimpleHUDWindows:RestoreHUDs(tHuds)
 		tOptions["name"] = hudInfo["name"]
 		tOptions["type"] = hudInfo["type"]
 		tOptions["position"] = hudInfo["position"]
-		self:CreateOrUpdateWindow(hudInfo["name"], tOptions)
+		self:CreateWindow(hudInfo["id"], tOptions)
 	end
 end
 
 function SimpleHUDWindows:CreateWindow(tOptions)
 	local id = self:GenerateId()
-	self.tWindows[id] = SimpleHudWindow:new()
+	self.tWindows[id] = SimpleHUDWindow:new()
 	self.tWindows[id]:CreateWindow(tOptions, self.GeminiPosition)
 end
 
@@ -214,9 +214,9 @@ function SimpleHUDWindows:UpdateWindow(hudId, tOptions)
 end
 
 function SimpleHUDWindows:CreateOrUpdateWindow(iId, tOptions)
-	if self.tWindows[strName] == nil then -- create new one
-		self.tWindows[strName] = SimpleHUDWindow:new()
-		self.tWindows[strName]:CreateWindow(tOptions, self.GeminiPosition)
+	if self.tWindows[tId] == nil then -- create new one
+		self.tWindows[tId] = SimpleHUDWindow:new()
+		self.tWindows[tId]:CreateWindow(tOptions, self.GeminiPosition)
 	else -- update existing
 	end
 end
