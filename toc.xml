@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Addon Author="Sigr" APIVersion="4" Name="SimpleHUD" Description="Brings Data you need anywhere you want it" Version="">
 	<Script Name="GeminiPackages.lua"/>
-  <Script Name="inspect.lua"/>
-  <Script Name="GeminiLoggin.lua"/>
+  <Script Name="GeminiLogging.lua"/>
     <Script Name="GeminiPosition.lua"/>
     <Script Name="GeminiList.lua"/>
     <Script Name="SimpleHUDWindow.lua"/>

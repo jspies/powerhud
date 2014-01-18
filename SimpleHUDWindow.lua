@@ -27,16 +27,18 @@ function SimpleHUDWindow:new(o)
 end
 
 -- takes a GeminiPosition instance
-function SimpleHUDWindow:CreateWindow(tOptions, GP)
+function SimpleHUDWindow:CreateWindow(iId, tOptions, GP)
 	self.GP = GP
-	
-	if self.type == kHealthShieldType then
+		
+	if tOptions.type == kHealthShieldType then
 		self.window = Apollo.LoadForm("HealthHUD.xml", "HealthForm", nil, self)
 	end
 	
-	if self.type == kPercentageType then
+	if tOptions.type == kPercentageType then
 		self.window = Apollo.LoadForm("SimpleHUD.xml", "SimpleHUDPercentage", nil, self)
 	end
+	
+	self.hudId = iId
 
 	GP:MakePositionable(tOptions.name, self.window)
 
@@ -195,14 +197,14 @@ function SimpleHUDWindows:RestoreHUDs(tHuds)
 		tOptions["name"] = hudInfo["name"]
 		tOptions["type"] = hudInfo["type"]
 		tOptions["position"] = hudInfo["position"]
-		self:CreateWindow(hudInfo["id"], tOptions)
+		self:CreateWindow(tOptions)
 	end
 end
 
 function SimpleHUDWindows:CreateWindow(tOptions)
 	local id = self:GenerateId()
 	self.tWindows[id] = SimpleHUDWindow:new()
-	self.tWindows[id]:CreateWindow(tOptions, self.GeminiPosition)
+	self.tWindows[id]:CreateWindow(id, tOptions, self.GeminiPosition)
 end
 
 function SimpleHUDWindows:UpdateWindow(hudId, tOptions)
@@ -211,14 +213,6 @@ function SimpleHUDWindows:UpdateWindow(hudId, tOptions)
 	end
 
 	self.tWindows[hudId]:Update(tOptions)
-end
-
-function SimpleHUDWindows:CreateOrUpdateWindow(iId, tOptions)
-	if self.tWindows[tId] == nil then -- create new one
-		self.tWindows[tId] = SimpleHUDWindow:new()
-		self.tWindows[tId]:CreateWindow(tOptions, self.GeminiPosition)
-	else -- update existing
-	end
 end
 
 function SimpleHUDWindows:GenerateId()
@@ -279,7 +273,7 @@ function SimpleHUDWindows:GetHudById(iId)
 end
 
 function SimpleHUDWindows:ForEach(callMethod)
-	for key, wndWindow in pairs(self.tWindows) do
+	for id, wndWindow in pairs(self.tWindows) do
 		callMethod(wndWindow)
 	end
 end

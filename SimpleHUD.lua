@@ -174,12 +174,12 @@ function SimpleHUD:RestoreHUDs()
 	self.simpleHUDs:RestoreHUDs(self.tHudsToRestore)
 	self.simpleHUDs:ToggleLock(self.config.bLocked)
 	-- need to add to options list as well
-	for index, hud in pairs(self.tHudsToRestore) do
+	self.simpleHUDs:ForEach(function(hud)
 		self.GLItemList:AddItem(function(window)
 			window:SetText(hud.name)
-			window:SetData(hub.hudId)
+			window:SetData(hud.hudId)
 		end)
-	end
+	end)
 	self.tHudsToRestore = nil
 end
 
