@@ -267,6 +267,8 @@ function SimpleHUD:LoadExistingEditForm(iId)
 	-- now need to populate all the fields
 	local hud = self.simpleHUDs:GetHudById(iId)
 	local wndEditView = self.wndOptions:FindChild("EditView")
+
+	local wndTypeSettings = Apollo.LoadForm("SimpleHUD.xml", self:SettingFormFor(hud.type), wndEditView:FindChild("TypeSettingsContainer"), self)
 	wndEditView:FindChild("HudName"):SetText(hud.name)
 	wndEditView:FindChild("HudName"):SetData(hud.hudId)
 	wndEditView:FindChild("TypeDropdownButton"):SetText(karHUDTypes[hud.type])
@@ -289,8 +291,11 @@ function SimpleHUD:OnDropdownItemButton( wndHandler, wndControl, eMouseButton ) 
 	wndEditView:FindChild("TypeDropdownButton"):SetData(wndHandler:GetData())
 	
 	-- Load the settings
-	local strSettingsName = "SimpleHUD" .. "HealthShield" .. "Settings"
-	local wndTypeSettings = Apollo.LoadForm("SimpleHUD.xml", strSettingsName, wndEditView:FindChild("TypeSettingsContainer"), self)
+	local wndTypeSettings = Apollo.LoadForm("SimpleHUD.xml", self:SettingFormFor(type), wndEditView:FindChild("TypeSettingsContainer"), self)
+end
+
+function SimpleHUD:SettingFormFor(sType)
+	return "SimpleHUD" .. sType .. "Settings"
 end
 
 -----------------------------------------------------------------------------------------------
